@@ -6,7 +6,6 @@
 
 import sqlite3
 import sys
-import DB_HANDLES
 
 
 def initdb():
@@ -39,7 +38,7 @@ def initdb():
         conn.execute("CREATE TABLE group_members (g_id integer REFERENCES groups ON DELETE CASCADE, id integer REFERENCES replays ON DELETE CASCADE);")
 
         print "Success!"
-
+    conn.close()
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         initdb()
