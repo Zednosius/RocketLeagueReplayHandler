@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 REPLAYS     = "replays"
 MATCH_DATA  = "match_data"
 TEAMS       = "teams"
