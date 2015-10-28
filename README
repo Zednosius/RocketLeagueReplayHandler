@@ -1,0 +1,16 @@
+The Rocket League Replay Handler is an application for the purpose of making it easier to keep track of you rocket league replay.
+This project is still in very early development and not suitable for use yet.
+
+Planned features
+* Give custom names to replay files (without having to alter the original files)
+* Add timestamped tags to a replay to make it easier to remember when a cool event happened.
+* Group replays together.
+* Searching among replays on different parameters (eg. playernames, scores, tags, groups etc.)
+* Detection of new files to ease the process of incorporating it into the application.
+* Custom loading/deloaing to eliminate need to scroll through all replays in the RL replaymenu.
+* Possibly ability to have certain parameters preloaded by parsing the replay.
+* Upload/download replays from rocketleaguereplays
+* Exporting/Importing one or several replays together with all their added tags etc.
+
+License
+See LICENSE

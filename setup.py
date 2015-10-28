@@ -1,4 +1,9 @@
 #!/usr/bin/python2
+
+#Copyright (C) 2015 Erik Söderberg
+#See LICENSE for more information
+
+
 import psycopg2
 import sys
 import DB_HANDLES
