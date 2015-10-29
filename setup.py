@@ -7,12 +7,11 @@
 import sqlite3
 import sys
 
-
-def initdb():
+def initdb(loc="rocketleague.db"):
 
   # print the connection string we will use to connect
-    print "Connecting to database"
-    conn = sqlite3.connect("rocketleague.db")
+    print "Connecting to database: "+loc
+    conn = sqlite3.connect(loc)
     conn.execute("PRAGMA foreign_keys = ON")
     with conn:      
 
@@ -23,7 +22,7 @@ def initdb():
         conn.execute("CREATE TABLE match_data (id integer REFERENCES replays ON DELETE CASCADE, team integer, playercount integer, goals integer, saves integer);")
         
         #ID(fk);TEAM; PLAYERNAME; GOALS; SAVES; (information about a player in a match)
-        conn.execute("CREATE TABLE teams (id integer REFERENCES replays ON DELETE CASCADE, team integer, playername text, goals integer, saves integer);")
+        conn.execute("CREATE TABLE teams (id integer REFERENCES replays ON DELETE CASCADE, playername text, team integer, goals integer, saves integer);")
         
         #ID(fk);TAGNAME;TIMESTAMP; (User created time tags for a match)
         conn.execute("CREATE TABLE tags (id integer REFERENCES replays ON DELETE CASCADE, tagname text, timestamp integer);")
@@ -38,7 +37,12 @@ def initdb():
         conn.execute("CREATE TABLE group_members (g_id integer REFERENCES groups ON DELETE CASCADE, id integer REFERENCES replays ON DELETE CASCADE);")
 
         print "Success!"
+    if loc == ":memory:":
+        return conn
     conn.close()
+
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         initdb()
