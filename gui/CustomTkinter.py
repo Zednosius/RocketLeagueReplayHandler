@@ -2,30 +2,79 @@
 # -*- coding: utf-8 -*-
 #Copyright (C) 2015 Erik Söderberg
 #See LICENSE for more information
-
-from Tkinter import *
+import Tkinter as tk
 import ttk
 import tkFont
-print "Tcl:",TclVersion 
-print "Tkv:",TkVersion
-class ReplayManager:
-    def __init__(self,parent):
-        pass
+from db_manager import *
 
+class ReplayManager(tk.Frame):
+    def __init__(self,parent, **kw):
+        tk.Frame.__init__(self, parent, **kw)
 
-class DragDropList(Listbox):
-    def __init__(self, parent, **kw):
+        with DB_Manager() as mann:
+            replays = mann.get_all("replays")
+        print replays
+
+        Lb1 = DragDropList(self)
+        for replay in replays:
+            Lb1.insert("end",replay[1],replay)
+        Lb1.grid(row=0,column=0,sticky="NSWE")
+
+        Lb2 = DragDropList(self)
+        Lb2.grid(row=0,column=2,sticky="NSWE")
+
+        self.info = tk.Frame(self,width=100,height=100)#ReplayInfoFrame(self,headers=["MyReplay","Utopia Stadium","2015-03-12:22-22"],bg="orange")
+
+        # info.pack(fill="x",anchor="n")
+        self.info.grid(row=0,column=1)
+
+        Lb1.link(Lb2)
+        Lb2.link(Lb1)
+
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_columnconfigure(1,weight=1)
+        self.grid_columnconfigure(2,weight=1)
+        self.grid_rowconfigure(0,weight=1)
+
+    def replay_doubleclicked(self,variables):
+        self.info.grid_forget()
+        self.info = ReplayInfoFrame(self,headers=variablesbg="orange")
+        self.info.grid(row=0,column=1)
         
-        Listbox.__init__(self, parent, kw)
+
+class DragDropList(tk.Listbox):
+
+    def __init__(self, parent, **kw):
+        self.parent = parent
+        tk.Listbox.__init__(self, parent, kw)
         
         self.bindtags((self, parent, "all"))
         self.bind('<ButtonPress-1>', self.set_current)
         self.bind('<ButtonRelease-1>', self.release)
         self.bind('<B1-Motion>',self.motion)
         self.bind('<Shift-B1-Motion>',self.motion_reverse)
+        self.bind('<Double-ButtonPress-1>',self.notify_parent_doubleclick)
+        self.variables = []
 
     def link(self,otherDropList):
         self.otherDropList = otherDropList
+
+    def notify_parent_doubleclick(self,event):
+        item = self.nearest(event.y)
+        resolved = False 
+        while not resolved:
+            parent = event.widget.winfo_parent()
+            if parent =="":
+                break
+            else:
+                print parent
+            wid = self.nametowidget(parent)
+
+            notify = getattr(wid,"replay_doubleclicked",None)
+            if callable(notify):
+                resolved = True
+                notify(self.variables[int(item)])
+
 
     def set_current(self, event):
         """Selects an item"""
@@ -75,11 +124,15 @@ class DragDropList(Listbox):
             self.release_linked(event)
         elif self.itemdown == self.nearest(event.y) and self.itemdown_pre == 1:
             x = self.selection_includes(self.nearest(event.y))
-            self.selection_clear(0,END)
+            self.selection_clear(0,"end")
             self.selection_toggle(self.nearest(event.y),unselect=x)
 
 
-       
+    def insert(self,idx,text,variables):
+        tk.Listbox.insert(self,idx,text)
+        self.variables.insert(self.size(),variables)
+        print self.variables
+
         
 
     def release_linked(self, event):
@@ -90,24 +143,35 @@ class DragDropList(Listbox):
         ot = self.otherDropList
         #Go backwards so as to not delete wrong item when the list resizes
         l = self.curselection()
-        it = []
+
+        items = []
+        varl = []
         for d in reversed(l):
-            it.append( self.get(d) )
+            print d,type(d)
+            items.append( self.get(d) )
+            varl.append( self.variables[int(d)] )
             self.delete(d)
-        for item in reversed(it):
+            self.variables.pop(int(d))
+
+        print items
+
+        for item in reversed(items):
 
             y = event.y_root-ot.winfo_rooty()
-            if ot.nearest(y) == -1:
-                ot.insert(END,item)
-                continue
 
+            if ot.nearest(y) == -1:
+                ot.insert("end",item,varl.pop())
+                continue
             i = ot.nearest(y)
             # print i
             bbox = ot.bbox(i)
             if bbox==None or bbox[3]/2.0 > y: 
-                ot.insert(i,item)
+                ot.insert(i,item,varl.pop())
             else:
-                ot.insert(i+1,item)
+                ot.insert(i+1,item,varl.pop())
+
+        print "me",self.variables
+        print "other",self.otherDropList.variables
 
     def contains(self,event):
         """Check if an event took place inside the container"""
@@ -131,25 +195,25 @@ def treeview_sort_column(tv, col, reverse):
                    treeview_sort_column(tv, col, not reverse))
 
 
-class TagList(Frame):
+class TagList(tk.Frame):
     def __init__(self,parent,**kw):
         self.mFont = kw.pop("mFont")
-        Frame.__init__(self,parent,kw)
+        tk.Frame.__init__(self,parent,kw)
         
-        self.scrollbar = Scrollbar(self, orient=VERTICAL)
-        self.tag_body = Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
+        self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
+        self.tag_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.tag_body.yview)
-        self.scrollbar.pack(side=RIGHT, fill=Y)
-        self.tag_body.pack(side=LEFT, fill=BOTH, expand=1)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tag_body.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
         self.insert("save","2:22")
         self.insert("AMAZING","2:22")
         
 
     def insert(self,tagname,timestamp):
-        self.tag_body.insert(END,tagname+"@"+timestamp)
+        self.tag_body.insert("end",tagname+"@"+timestamp)
         self.tag_body.config(width=0)
 
-class ReplayInfoFrame(Frame):
+class ReplayInfoFrame(tk.Frame):
 
     def motion(self,event):
 
@@ -157,9 +221,6 @@ class ReplayInfoFrame(Frame):
 
     def make_table(self):
         self.table = ttk.Treeview(self,selectmode="none",height=6)
-
-        for item in self.table.keys():
-            print(item),(self.table.cget(item))
         
         self.table.bind_class(self.table,"<B1-Motion>",self.motion)
 
@@ -175,20 +236,20 @@ class ReplayInfoFrame(Frame):
         self.table.heading("#3", text="Goals",command=lambda:treeview_sort_column(self.table, "#3", False))
         self.table.heading("#4", text="Saves",command=lambda:treeview_sort_column(self.table, "#4", False))
        
+        #Remove the first column
         self.table.column("#0",width=0,minwidth=0)
+
         for col in self.allcols:
             self.table.column(col,anchor='center',minwidth=50,width=60)
 
-        for i in range(1,7):
+        for values in self.values:
             self.table.insert("", "end",
-             values=("Player "+str(i),"Red" if i%2 == 1 else "Blue",str(((i*4)**2)%5),str(((i*3)**2)%5)),
-             tags=("even" if i%2==0 else "odd","red" if i%2 == 1 else "blue"))
-            if(self.table.column("#1","width") < self.mFont.measure("Player "+str(i))):
-                print "size bf: ",self.table.column("#1","width")
-                print "font msz: ",self.mFont.measure("Player "+str(i))
-                self.table.column("#1",width=int(self.mFont.measure("Player "+str(i))*1.2))
+             values=values,
+             tags=("red" if values[0] == 1 else "blue"))
 
-            print "red" if i%2 == 1 else "blue"
+            if(self.table.column("#1","width") < self.mFont.measure(values[0])): #Adjust table column size if needed
+                self.table.column("#1",width=int(self.mFont.measure(values[0])*1.2))
+
 
         self.table.tag_configure('red' , background='#FF6A6A',font=self.mFont)
         self.table.tag_configure('blue', background='#82CFFD',font=self.mFont)
@@ -199,15 +260,20 @@ class ReplayInfoFrame(Frame):
         self.values = kw.pop("value",[])
 
         
-        Frame.__init__(self,parent,kw)
+        tk.Frame.__init__(self,parent,kw)
         
         self.mFont = tkFont.Font(family="Helvetica",size=14)
 
+
+        with DB_Manager() as mann:
+            teams = mann.get_all_where("teams",)
+
+
         #Make the top info: name,map,date
-        self.replay_header = Frame(self, background="red")
+        self.replay_header =tk.Frame(self, background="red")
         self.replay_header.grid(sticky="WE")
         for header in self.headers:
-            lbl = Label(self.replay_header,font=self.mFont,text=header,relief=RAISED,wraplength="300")
+            lbl = tk.Label(self.replay_header,font=self.mFont,text=header,relief=tk.RAISED,wraplength="300")
             col = self.headers.index(header)
             lbl.grid(row=0,column=col,sticky="NS")
         lbl.grid(stick="WNSE")
@@ -218,7 +284,7 @@ class ReplayInfoFrame(Frame):
         #Create the body for tags
         self.taglist = TagList(self,mFont=self.mFont)
         self.taglist.grid(row=1,column=2,sticky="NS")
-        self.note_body = Frame(self, background="red")
+        self.note_body =tk.Frame(self, background="red")
 
         self.replay_header.grid(row=0,column=0,columnspan=3)
 
