@@ -24,7 +24,6 @@ class DragDropList(Listbox):
         self.bind('<B1-Motion>',self.motion)
         self.bind('<Shift-B1-Motion>',self.motion_reverse)
 
-
     def link(self,otherDropList):
         self.otherDropList = otherDropList
 
@@ -34,11 +33,16 @@ class DragDropList(Listbox):
         self.itemdown_pre = self.selection_includes(self.itemdown)
         self.selection_set(self.itemdown)
 
-    def selection_toggle(self, x):
+    def selection_toggle(self, x,unselect=False,select=False):
         """Toggles an item between selected and unselected"""
         if self.selection_includes(x):
             self.selection_clear(x)
         else:
+            self.selection_set(x)
+
+        if unselect:
+            self.selection_clear(x)
+        if select:
             self.selection_set(x)
 
     def motion(self, event):
@@ -70,7 +74,10 @@ class DragDropList(Listbox):
         if self.otherDropList and self.otherDropList.contains(event):
             self.release_linked(event)
         elif self.itemdown == self.nearest(event.y) and self.itemdown_pre == 1:
-            self.selection_toggle(self.nearest(event.y))
+            x = self.selection_includes(self.nearest(event.y))
+            self.selection_clear(0,END)
+            self.selection_toggle(self.nearest(event.y),unselect=x)
+
 
        
         
@@ -79,16 +86,25 @@ class DragDropList(Listbox):
         """Called when mousebutton released over the linked list.
             Removes items from the first list and adds them to the other
         """
-        print self.curselection()
+        # print self.curselection()
         ot = self.otherDropList
         #Go backwards so as to not delete wrong item when the list resizes
-        for d in reversed(self.curselection()):
-            item = self.get(d)
+        l = self.curselection()
+        it = []
+        for d in reversed(l):
+            it.append( self.get(d) )
             self.delete(d)
-            y = event.y_root-ot.winfo_rooty()
-            i = ot.nearest(y)
+        for item in reversed(it):
 
-            if ot.bbox(i)[3]/2.0 > y: 
+            y = event.y_root-ot.winfo_rooty()
+            if ot.nearest(y) == -1:
+                ot.insert(END,item)
+                continue
+
+            i = ot.nearest(y)
+            # print i
+            bbox = ot.bbox(i)
+            if bbox==None or bbox[3]/2.0 > y: 
                 ot.insert(i,item)
             else:
                 ot.insert(i+1,item)
@@ -100,103 +116,113 @@ class DragDropList(Listbox):
                 and event.y_root > self.winfo_rooty() \
                 and event.y_root < self.winfo_rooty()+self.winfo_height()
 
-class Table(Frame):
+
+#http://stackoverflow.com/questions/1966929/tk-treeview-column-sort
+def treeview_sort_column(tv, col, reverse):
+        l = [(tv.set(k, col), k) for k in tv.get_children('')]
+        l.sort(reverse=reverse)
+
+        # rearrange items in sorted positions
+        for index, (val, k) in enumerate(l):
+            tv.move(k, '', index)
+
+        # reverse sort next time
+        tv.heading(col, command=lambda: \
+                   treeview_sort_column(tv, col, not reverse))
+
+
+class TagList(Frame):
     def __init__(self,parent,**kw):
+        self.mFont = kw.pop("mFont")
         Frame.__init__(self,parent,kw)
-        self.headers = kw.pop("headers")
-        self.header_list = []
-        self.rows = 1
-        self.columns = len(self.headers)
-        for header in self.headers:
-            lbl = Label(self, text=header)
-            lbl.grid(row = self.rows, column=self.headers.index(header))
-            header_list.append(lbl)
-        self.grid_columnconfigure
+        
+        self.scrollbar = Scrollbar(self, orient=VERTICAL)
+        self.tag_body = Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.tag_body.yview)
+        self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.tag_body.pack(side=LEFT, fill=BOTH, expand=1)
+        self.insert("save","2:22")
+        self.insert("AMAZING","2:22")
+        
 
-    def insert(self,row,values):
-        pass
-
-
-
-
+    def insert(self,tagname,timestamp):
+        self.tag_body.insert(END,tagname+"@"+timestamp)
+        self.tag_body.config(width=0)
 
 class ReplayInfoFrame(Frame):
 
-    def drag(self,event):
-        pass
+    def motion(self,event):
 
-    def treepress(self,event):
-        self.pressed_column = self.team_body.identify("column",event.x,event.y)
-        print "pressed: "+self.pressed_column
-        self.px = event.x
-        self.py = event.y
+        return "break"
+
+    def make_table(self):
+        self.table = ttk.Treeview(self,selectmode="none",height=6)
+
+        for item in self.table.keys():
+            print(item),(self.table.cget(item))
+        
+        self.table.bind_class(self.table,"<B1-Motion>",self.motion)
+
+
+        self.allcols = ["#1","#2","#3","#4"]
+        self.table["columns"] =["#1","#2","#3","#4"]
+        style = ttk.Style(self)
+        style.configure('Treeview', rowheight=40)
+
+        #Set up headings
+        self.table.heading("#1", text="Player",command=lambda:treeview_sort_column(self.table, "#1", False))
+        self.table.heading("#2", text="Team",command=lambda:treeview_sort_column(self.table , "#2", False))
+        self.table.heading("#3", text="Goals",command=lambda:treeview_sort_column(self.table, "#3", False))
+        self.table.heading("#4", text="Saves",command=lambda:treeview_sort_column(self.table, "#4", False))
+       
+        self.table.column("#0",width=0,minwidth=0)
+        for col in self.allcols:
+            self.table.column(col,anchor='center',minwidth=50,width=60)
+
+        for i in range(1,7):
+            self.table.insert("", "end",
+             values=("Player "+str(i),"Red" if i%2 == 1 else "Blue",str(((i*4)**2)%5),str(((i*3)**2)%5)),
+             tags=("even" if i%2==0 else "odd","red" if i%2 == 1 else "blue"))
+            if(self.table.column("#1","width") < self.mFont.measure("Player "+str(i))):
+                print "size bf: ",self.table.column("#1","width")
+                print "font msz: ",self.mFont.measure("Player "+str(i))
+                self.table.column("#1",width=int(self.mFont.measure("Player "+str(i))*1.2))
+
+            print "red" if i%2 == 1 else "blue"
+
+        self.table.tag_configure('red' , background='#FF6A6A',font=self.mFont)
+        self.table.tag_configure('blue', background='#82CFFD',font=self.mFont)
+
 
     def __init__(self,parent,**kw):
+        self.headers = kw.pop("headers",[])
+        self.values = kw.pop("value",[])
+
+        
         Frame.__init__(self,parent,kw)
         
-        mFont = tkFont.Font(family="Helvetica",size=14,weight=tkFont.BOLD)
+        self.mFont = tkFont.Font(family="Helvetica",size=14)
 
+        #Make the top info: name,map,date
         self.replay_header = Frame(self, background="red")
-        ttk.Label(self.replay_header,font=mFont, text="Name").grid(row=0, column=0,sticky="W")
-        Label(self.replay_header,font=mFont, text="Map").grid(row=0, column=1)
-        Label(self.replay_header,font=mFont, text="Score").grid(row=0, column=2)
-        Label(self.replay_header,font=mFont, text="Hello World!").grid(row=0, column=3,sticky="E")
-
-        for i in range(0,4):
-            self.replay_header.grid_columnconfigure(i,weight=1)
-
-        self.team_body = ttk.Treeview(self)
-        self.team_body.bind("<B1-Motion>",self.drag)
-        self.team_body.bind("<ButtonPress-1>",self.treepress)
-        #self.team_body.bindtags((self.team_body, self, "all"))
-        #self.team_body.bind("<<TreeviewResizeDrag>>",self.drag)
-        self.team_body.bind("<<TreeviewSelect>>",self.drag)
-
-        #self.team_body['show'] = 'headings'
-        self.team_body["columns"] =["#1","#2","#3"]
-
-        self.team_body.heading("#0", text="Player")
-        self.team_body.heading("#1", text="Team")
-        self.team_body.heading("#2", text="Goals")
-        self.team_body.heading("#3", text="Saves")
+        self.replay_header.grid(sticky="WE")
+        for header in self.headers:
+            lbl = Label(self.replay_header,font=self.mFont,text=header,relief=RAISED,wraplength="300")
+            col = self.headers.index(header)
+            lbl.grid(row=0,column=col,sticky="NS")
+        lbl.grid(stick="WNSE")
+        self.replay_header.grid_columnconfigure(col,weight=1)
+        self.make_table()
 
 
-        self.team_body.column("#0",anchor='center',minwidth=50)
-        self.team_body.column("#1",anchor='center',minwidth=50)
-        self.team_body.column("#2",anchor='center',minwidth=50)
-        self.team_body.column("#3",anchor='center',minwidth=50)
-        # Label(self.team_body,text="Blue Team", font=mFont, fg="Blue", bg="white").grid(row=0, column=0)
-        # Label(self.team_body,text="Red Team" , font=mFont, fg="Red", bg="white").grid(row=0, column=2)
-        # Frame(self.team_body,background="black",height=1).grid(row=1,columnspan=3,sticky="WE")
-        # Frame(self.team_body,background="black",width=1).grid(row=0,column=1,rowspan=5,sticky="SN")
-        #for i in range(1,4):
-        #Label(self.team_body,text="Player "+str(i), font=mFont, fg="Blue").grid(row=i+1, column=0)
-        #Label(self.team_body,text="Player "+str(i+3), font=mFont, fg="Red").grid(row=i+1, column=2)
-        for i in range(1,7):
-            self.team_body.insert("", "end",text="Player "+str(i), values=(str(i%1),str(((i*4)**2)%5),str(((i*3)**2)%5)),tags=("even" if i%2==0 else "odd",))
-
-        self.team_body.tag_configure('odd' , background='orange')
-        self.team_body.tag_configure('even', background='purple')
-
-        self.tag_body = Frame(self, background="green")
+        #Create the body for tags
+        self.taglist = TagList(self,mFont=self.mFont)
+        self.taglist.grid(row=1,column=2,sticky="NS")
         self.note_body = Frame(self, background="red")
-        self.replay_header.grid(row=0,sticky="WE")
-        self.team_body.grid(row=1,sticky="WE")
-        self.tag_body.grid(row=1,sticky="E")
-        self.note_body.grid(row=2,sticky="S")
 
+        self.replay_header.grid(row=0,column=0,columnspan=3)
 
-        print dir(self.team_body)
-        t = self.team_body
-        print t.slaves
-        print t.location
-        
-        print t.config
-        print t.children
-        print t.get_children()
-        print t._tclCommands
+        self.table.grid(        row=1,column=0,columnspan=2)
 
-        for i in range(0,3):
-            self.grid_columnconfigure(i,weight=1)
-            self.grid_rowconfigure(i,weight=1)
-        self.grid_columnconfigure(3,weight=1)
+        self.note_body.grid(    row=2,column=0,columnspan=3)
+

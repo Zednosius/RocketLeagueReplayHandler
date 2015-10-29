@@ -9,6 +9,7 @@ def output():
     print "Not implemented"
 root = Tk()
 
+
 menu = Menu(root)
 root.config(menu=menu)
 
@@ -56,11 +57,13 @@ Lb2.grid(row=0,column=2,sticky="NSWE")
 # id_ = tree.insert('','end','widgets',text='testing')
 # tree.insert(id_,'end',text="Child")
 # tree.pack(fill=Y,expand=1,side=RIGHT)
-info = cst.ReplayInfoFrame(root)
-info.grid(row=0,column=1,sticky="NSWE")
+f = Frame(root)
+info = cst.ReplayInfoFrame(f,headers=["MyReplay","Utopia Stadium","2015-03-12:22-22"],bg="orange")
+info.pack(fill=X,anchor=N)
+f.grid(row=0,column=1)
 Lb1.link(Lb2)
 Lb2.link(Lb1)
-Label(root,text="player 7",bg="purple").grid(row=1,column=1,sticky="WE")
+
 root.grid_columnconfigure(0,weight=1)
 root.grid_columnconfigure(1,weight=1)
 root.grid_columnconfigure(2,weight=1)
