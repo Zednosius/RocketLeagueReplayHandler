@@ -6,6 +6,8 @@
 from Tkinter import *
 import ttk
 import tkFont
+print "Tcl:",TclVersion 
+print "Tkv:",TkVersion
 class ReplayManager:
     def __init__(self,parent):
         pass
@@ -98,12 +100,42 @@ class DragDropList(Listbox):
                 and event.y_root > self.winfo_rooty() \
                 and event.y_root < self.winfo_rooty()+self.winfo_height()
 
+class Table(Frame):
+    def __init__(self,parent,**kw):
+        Frame.__init__(self,parent,kw)
+        self.headers = kw.pop("headers")
+        self.header_list = []
+        self.rows = 1
+        self.columns = len(self.headers)
+        for header in self.headers:
+            lbl = Label(self, text=header)
+            lbl.grid(row = self.rows, column=self.headers.index(header))
+            header_list.append(lbl)
+        self.grid_columnconfigure
+
+    def insert(self,row,values):
+        pass
+
+
+
+
 
 class ReplayInfoFrame(Frame):
 
+    def drag(self,event):
+        pass
+
+    def treepress(self,event):
+        self.pressed_column = self.team_body.identify("column",event.x,event.y)
+        print "pressed: "+self.pressed_column
+        self.px = event.x
+        self.py = event.y
+
     def __init__(self,parent,**kw):
         Frame.__init__(self,parent,kw)
+        
         mFont = tkFont.Font(family="Helvetica",size=14,weight=tkFont.BOLD)
+
         self.replay_header = Frame(self, background="red")
         ttk.Label(self.replay_header,font=mFont, text="Name").grid(row=0, column=0,sticky="W")
         Label(self.replay_header,font=mFont, text="Map").grid(row=0, column=1)
@@ -114,13 +146,25 @@ class ReplayInfoFrame(Frame):
             self.replay_header.grid_columnconfigure(i,weight=1)
 
         self.team_body = ttk.Treeview(self)
-        self.team_body['show'] = 'headings'
-        self.team_body["columns"] =("one","two")
+        self.team_body.bind("<B1-Motion>",self.drag)
+        self.team_body.bind("<ButtonPress-1>",self.treepress)
+        #self.team_body.bindtags((self.team_body, self, "all"))
+        #self.team_body.bind("<<TreeviewResizeDrag>>",self.drag)
+        self.team_body.bind("<<TreeviewSelect>>",self.drag)
 
-        self.team_body.heading("one", text="Blue Team",)
-        self.team_body.heading("two", text="Red Team")
-        self.team_body.column("one",anchor='center')
-        self.team_body.column("two",anchor='center')
+        #self.team_body['show'] = 'headings'
+        self.team_body["columns"] =["#1","#2","#3"]
+
+        self.team_body.heading("#0", text="Player")
+        self.team_body.heading("#1", text="Team")
+        self.team_body.heading("#2", text="Goals")
+        self.team_body.heading("#3", text="Saves")
+
+
+        self.team_body.column("#0",anchor='center',minwidth=50)
+        self.team_body.column("#1",anchor='center',minwidth=50)
+        self.team_body.column("#2",anchor='center',minwidth=50)
+        self.team_body.column("#3",anchor='center',minwidth=50)
         # Label(self.team_body,text="Blue Team", font=mFont, fg="Blue", bg="white").grid(row=0, column=0)
         # Label(self.team_body,text="Red Team" , font=mFont, fg="Red", bg="white").grid(row=0, column=2)
         # Frame(self.team_body,background="black",height=1).grid(row=1,columnspan=3,sticky="WE")
@@ -128,8 +172,8 @@ class ReplayInfoFrame(Frame):
         #for i in range(1,4):
         #Label(self.team_body,text="Player "+str(i), font=mFont, fg="Blue").grid(row=i+1, column=0)
         #Label(self.team_body,text="Player "+str(i+3), font=mFont, fg="Red").grid(row=i+1, column=2)
-        for i in range(1,4):
-            self.team_body.insert("", "end",values=("Player "+str(i),"Player "+str(i+3)),tags=("even" if i%2==0 else "odd",))
+        for i in range(1,7):
+            self.team_body.insert("", "end",text="Player "+str(i), values=(str(i%1),str(((i*4)**2)%5),str(((i*3)**2)%5)),tags=("even" if i%2==0 else "odd",))
 
         self.team_body.tag_configure('odd' , background='orange')
         self.team_body.tag_configure('even', background='purple')
@@ -141,7 +185,18 @@ class ReplayInfoFrame(Frame):
         self.tag_body.grid(row=1,sticky="E")
         self.note_body.grid(row=2,sticky="S")
 
+
+        print dir(self.team_body)
+        t = self.team_body
+        print t.slaves
+        print t.location
+        
+        print t.config
+        print t.children
+        print t.get_children()
+        print t._tclCommands
+
         for i in range(0,3):
             self.grid_columnconfigure(i,weight=1)
             self.grid_rowconfigure(i,weight=1)
-
+        self.grid_columnconfigure(3,weight=1)
