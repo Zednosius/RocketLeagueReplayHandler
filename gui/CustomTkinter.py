@@ -38,7 +38,7 @@ class ReplayManager(tk.Frame):
 
     def replay_doubleclicked(self,variables):
         self.info.grid_forget()
-        self.info = ReplayInfoFrame(self,headers=variablesbg="orange")
+        self.info = ReplayInfoFrame(self,headers=list(variables),bg="orange")
         self.info.grid(row=0,column=1)
         
 
@@ -258,7 +258,8 @@ class ReplayInfoFrame(tk.Frame):
     def __init__(self,parent,**kw):
         self.headers = kw.pop("headers",[])
         self.values = kw.pop("value",[])
-
+        self.id = self.headers.pop(0)
+        self.filename = self.headers.pop(0)
         
         tk.Frame.__init__(self,parent,kw)
         
@@ -266,7 +267,7 @@ class ReplayInfoFrame(tk.Frame):
 
 
         with DB_Manager() as mann:
-            teams = mann.get_all_where("teams",)
+            teams = mann.get_all_where("teams",id=("=",self.id))
 
 
         #Make the top info: name,map,date
