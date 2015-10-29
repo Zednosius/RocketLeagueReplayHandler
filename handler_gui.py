@@ -3,13 +3,34 @@
 #Copyright (C) 2015 Erik Söderberg
 #See LICENSE for more information
 from Tkinter import *
-from ttk import *
+import ttk
 import gui.CustomTkinter as cst
+def output():
+    print "Not implemented"
 root = Tk()
 
-resultframe = Frame(root)
+menu = Menu(root)
+root.config(menu=menu)
+
+filemenu = Menu(menu)
+menu.add_cascade(label="File", menu=filemenu)
+filemenu.add_command(label="New", command=output)
+filemenu.add_command(label="Open...", command=output)
+filemenu.add_separator()
+filemenu.add_command(label="Exit", command=output)
+
+helpmenu = Menu(menu)
+menu.add_cascade(label="Help", menu=helpmenu)
+helpmenu.add_command(label="About...", command=output)
+
+resultframe = Frame(root, background="red")
 resultframe.grid(row=0,column=0,sticky="NSEW")
-Lb1 = Listbox(resultframe,selectmode=MULTIPLE)
+
+Lb1 = cst.DragDropList(root)
+
+
+#Lb1.bind('<ButtonRelease-1>', output)
+# Lb1.bind("<B1-Motion>",output)
 Lb1.insert(1, "Python")
 Lb1.insert(2, "Perl")
 Lb1.insert(3, "C")
@@ -22,6 +43,7 @@ resultframe.grid_rowconfigure(0,weight=1)
 resultframe.grid_columnconfigure(0,weight=1)
 
 Lb2 = cst.DragDropList(root)
+# Lb2.bind("<B1-Motion>",output)
 Lb2.insert(1, "1Python")
 Lb2.insert(2, "1PythonPerl")
 Lb2.insert(3, "C2")
@@ -36,7 +58,8 @@ Lb2.grid(row=0,column=2,sticky="NSWE")
 # tree.pack(fill=Y,expand=1,side=RIGHT)
 info = cst.ReplayInfoFrame(root)
 info.grid(row=0,column=1)
-
+Lb1.link(Lb2)
+Lb2.link(Lb1)
 root.grid_columnconfigure(0,weight=1)
 root.grid_columnconfigure(1,weight=1)
 root.grid_columnconfigure(2,weight=1)
