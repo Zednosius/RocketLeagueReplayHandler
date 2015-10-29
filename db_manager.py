@@ -8,7 +8,8 @@ import sys
 import os
 
 
-
+def clean(string):
+    return ''.join(c for c in string if c.isalnum())
 
 class DB_Manager():
     """
@@ -57,20 +58,44 @@ class DB_Manager():
             self.dprint("Inserted %s %s into group_members",ID,gID)
 
     def get_all(self, table):
+        """Get all the rows from specified table"""
+        table = clean(table)
         with self.conn:
             return self.conn.execute("SELECT * FROM "+table).fetchall()
+
+    def get_all_where(self,table,**kw):
+        """Get all the rows from specified table where all conditions are satisfied
+            conditions are passed as cond1=(cmp,var1),cond2=(cmp,var2)
+        """
+        table = clean(table)
+        for k in kw.keys():
+            if(type(kw[k]) == str):
+                kw[k] = clean(kw[k])
+
+        where_clause = "".join([" %s %s :%s" % (key,kw[key][0],key) for key in kw.keys()])
+        kw = {k:v[1] for (k,v) in kw.items()}
+        print "SELECT * FROM "+table+" WHERE "+where_clause
+        with self.conn:
+            return self.conn.execute("SELECT * FROM "+table+" WHERE "+where_clause,kw).fetchall()
 
     def close(self):   
         self.conn.close()
 
 
     def __enter__(self):
-        pass
+        return self
 
-    def __exit(self):
+    def __exit__(self ,type, value, traceback):
         self.close()
 
 
     def dprint(self,msg,*arg):
         if self.debug:
             print msg % arg
+
+if __name__ == '__main__':
+    with DB_Manager() as mann:
+        print mann.get_all("replays")
+        print mann.get_all_where("replays",filename=("=","hurr"))
+        print mann.get_all_where("replays",map=("=","Durrtown"))
+        print mann.get_all_where("replays",id=(">",1))
