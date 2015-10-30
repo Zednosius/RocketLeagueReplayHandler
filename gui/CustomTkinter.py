@@ -13,19 +13,41 @@ class ReplayManager(tk.Frame):
 
         with DB_Manager() as mann:
             replays = mann.get_all("replays")
-        print replays
+        # print replays
+        tk.Label(self,text="Replays").grid(row=0,column=0,sticky="NS")
+        tk.Button(self,text="Filter").grid(row=2,column=0)
+        tk.Label(self,text="Staged").grid(row=0,column=2,sticky="NS")
+        f  = tk.Frame(self)
+        f2 = tk.Frame(self)
 
-        Lb1 = DragDropList(self)
+        scrollbar = tk.Scrollbar(f, orient=tk.VERTICAL)
+        Lb1 = DragDropList(f,yscrollcommand=scrollbar.set)
+        Lb1.bind("<MouseWheel>",lambda event : Lb1.yview("scroll",-event.delta/120,"units"))
+        scrollbar.config(command=Lb1.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        Lb1.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+
+
         for replay in replays:
             Lb1.insert("end",replay[2],replay)
-        Lb1.grid(row=0,column=0,sticky="NSWE")
+        
+        scrollbar2 = tk.Scrollbar(f2, orient=tk.VERTICAL)
+        Lb2 = DragDropList(f2,yscrollcommand=scrollbar2.set)
+        Lb2.bind("<MouseWheel>",lambda event : Lb2.yview("scroll",-event.delta/120,"units"))
+        scrollbar2.config(command=Lb2.yview)
+        scrollbar2.pack(side=tk.RIGHT, fill=tk.Y)
+        Lb2.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
 
-        Lb2 = DragDropList(self)
-        Lb2.grid(row=0,column=2,sticky="NSWE")
+
+        # Lb1.grid(row=1,column=0,sticky="NSWE")
+        # Lb2.grid(row=1,column=2,sticky="NSWE")
+        f.grid(row=1,column=0,sticky="NSWE")
+        f2.grid(row=1,column=2,sticky="NSWE")
+
 
         self.info = ReplayInfoFrame(self,width=100,height=100)#tk.Frame(self,width=100,height=100)
 
-        self.info.grid(row=0,column=1)
+        self.info.grid(row=1,column=1)
 
         Lb1.link(Lb2)
         Lb2.link(Lb1)
@@ -33,7 +55,7 @@ class ReplayManager(tk.Frame):
         self.grid_columnconfigure(0,weight=1)
         self.grid_columnconfigure(1,weight=1)
         self.grid_columnconfigure(2,weight=1)
-        self.grid_rowconfigure(0,weight=1)
+        self.grid_rowconfigure(1,weight=1)
 
     def replay_displayinfo(self,variables):
         self.info.use_headers(list(variables))
@@ -68,8 +90,8 @@ class DragDropList(tk.Listbox):
     def select_arrow(self,event,di):
         selected = self.curselection()
         if len(selected) == 1:
-            print self.size()
-            print "mov to: ",(self.itemdown+di) % self.size()
+            # print self.size()
+            # print "mov to: ",(self.itemdown+di) % self.size()
             self.selection_set((self.itemdown+di) % self.size())
             self.selection_clear(self.itemdown)
             self.itemdown = (self.itemdown+di) % self.size()
@@ -78,15 +100,19 @@ class DragDropList(tk.Listbox):
             self.itemdown = 0
 
     def notify_parent_displayinfo(self, event):
-        if not hasattr(event,'keysym'):
+       
+        if event.keysym == "??":
             item = self.nearest(event.y)
+            # print "Clearing and reselecting"
+            self.selection_clear(0,"end")
+            self.selection_set(item)
         else:
             item = self.itemdown
-        resolved = False 
-        
-        while not resolved:
-            parent = event.widget.winfo_parent()
 
+        # print "Doubleclicked"
+        resolved = False 
+        parent = event.widget.winfo_parent()
+        while not resolved and self.size() > 0:
             if parent =="":
                 break
             else:
@@ -97,6 +123,7 @@ class DragDropList(tk.Listbox):
             if callable(notify):
                 resolved = True
                 notify(self.variables[int(item)])
+            parent = wid.winfo_parent()
 
 
     def set_current(self, event):
@@ -171,13 +198,13 @@ class DragDropList(tk.Listbox):
         items = []
         varl = []
         for d in reversed(l):
-            print d,type(d)
+            # print d,type(d)
             items.append( self.get(d) )
             varl.append( self.variables[int(d)] )
             self.delete(d)
             self.variables.pop(int(d))
 
-        print items
+        # print items
         y = event.y_root-ot.winfo_rooty()
         i = ot.nearest(y)
 
@@ -240,16 +267,17 @@ class TagList(tk.Frame):
         
         self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
         self.tag_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
+        self.tag_body.bind("<MouseWheel>",lambda event : self.tag_body.yview("scroll",-event.delta/120,"units"))
         self.scrollbar.config(command=self.tag_body.yview)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.tag_body.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-        self.insert("save","2:22")
-        self.insert("AMAZING","2:22")
         
 
     def insert(self,tagname,timestamp):
         self.tag_body.insert("end",tagname+"@"+timestamp)
         self.tag_body.config(width=0)
+    def delete(self,index,end):
+        self.tag_body.delete(index,end)
 
 class ReplayInfoFrame(tk.Frame):
 
@@ -278,6 +306,7 @@ class ReplayInfoFrame(tk.Frame):
         self.table_insert_values()
         
     def table_insert_values(self):
+        """Inserts all values in self.values into the table"""
         self.table.delete(*self.table.get_children())
         for col in self.allcols:
             self.table.column(col,anchor='center',minwidth=50,width=60)
@@ -295,14 +324,15 @@ class ReplayInfoFrame(tk.Frame):
         self.table.tag_configure('blue', background='#82CFFD',font=self.mFont)
 
     def populate_headers(self):
+        """Inserts all header texts from self.headers"""
         added = False
         for i in range(0,len(self.headers)):
-            print "headr: ",self.headers[i]
+            # print "headr: ",self.headers[i]
             if(len(self.headervars) > i):
-                print "replacing header ",self.headervars[i],"with",self.headers[i]
+                # print "replacing header ",self.headervars[i],"with",self.headers[i]
                 self.headervars[i].set(self.headers[i])
             else:
-                print "added headerlabel", len(self.headervars)
+                # print "added headerlabel", len(self.headervars)
                 lbl = self.add_header_label(self.headers[i])
                 added = True
         if added:
@@ -311,6 +341,7 @@ class ReplayInfoFrame(tk.Frame):
 
 
     def use_headers(self,headers):
+        """Uses the headers provided, replacing the old ones"""
         self.headers = headers
         if headers:  
             self.id = self.headers.pop(0)
@@ -318,12 +349,15 @@ class ReplayInfoFrame(tk.Frame):
             if(len(self.headervars) == len(self.headers)):
                 self.populate_headers()
 
-    def load_from_db(self):
+    def load_values_from_db(self):
+        """Load data from database"""
         with DB_Manager() as mann:
             self.values = mann.get_all_where("teams",id=("=",self.id))
-            print self.values
+            self.tags = mann.get_all_where("tags",id=("=",self.id))
+            self.notes = mann.get_all_where("notes",id=("=",self.id))
 
     def add_header_label(self,header):
+        """Add label for a header value"""
         strvar = tk.StringVar()
         strvar.set(header)
         lbl = tk.Label(self.replay_header,font=self.mFont,textvariable=strvar,relief=tk.RAISED,wraplength="300")
@@ -334,17 +368,15 @@ class ReplayInfoFrame(tk.Frame):
         return lbl
 
     def init(self):
-        self.load_from_db()
-
+        """Construct self given values, self.headers need to be set so that associated data can be found."""
+        self.load_values_from_db()
         self.populate_headers()
         self.replay_header.grid_columnconfigure(self.replay_header.colnum,weight=1)
-       
         self.make_table()
         self.table.configure(height=len(self.values))
-
-
-        #Create the body for tags
-
+        self.taglist.delete(0,"end")
+        for (_,tag,time) in self.tags:
+            self.taglist.insert(tag,time)
 
 
     def __init__(self,parent,**kw):
@@ -355,10 +387,13 @@ class ReplayInfoFrame(tk.Frame):
         tk.Frame.__init__(self,parent,kw)
         
         self.mFont = tkFont.Font(family="Helvetica",size=14)
-                #Make the top info: name,map,date
-        self.replay_header =tk.Frame(self, background="red")
+        #Make the top info: name,map,date
+        self.replay_header =tk.Frame(self)
+
         self.replay_header.grid(sticky="WE")
+
         self.table = ttk.Treeview(self,selectmode="none")
+
         if self.headers:
             self.init()
             
@@ -366,7 +401,7 @@ class ReplayInfoFrame(tk.Frame):
         self.taglist = TagList(self,mFont=self.mFont)
 
         self.taglist.grid(row=1,column=2,sticky="NS")
-        self.note_body = tk.Frame(self, background="red")
+        self.note_body = tk.Frame(self)
 
         self.replay_header.grid(row=0,column=0,columnspan=3)
 

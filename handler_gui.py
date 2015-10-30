@@ -25,6 +25,6 @@ helpmenu = Menu(menu)
 menu.add_cascade(label="Help", menu=helpmenu)
 helpmenu.add_command(label="About...", command=output)
 
-cst.ReplayManager(root).pack()
+cst.ReplayManager(root).pack(expand=True,fill=BOTH)
 
 root.mainloop()
