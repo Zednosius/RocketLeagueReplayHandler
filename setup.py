@@ -46,3 +46,7 @@ def initdb(loc="rocketleague.db"):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         initdb()
+    if len(sys.argv) == 2 and sys.argv[1] == "test":
+        initdb()
+        import test_db
+        test_db.populate_test("rocketleague.db")
