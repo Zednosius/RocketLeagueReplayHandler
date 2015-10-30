@@ -7,6 +7,59 @@ import ttk
 import tkFont
 from db_manager import *
 
+
+
+def tag_popup(taglist,infowidget):
+    TagPopup(taglist=taglist,infowidget=infowidget)
+
+
+
+
+class TagPopup(tk.Toplevel):
+    def __init__(self,parent=None,**kw):
+        self.taglist = kw.pop("taglist")
+        self.infowidget = kw.pop("infowidget")
+        tk.Toplevel.__init__(self,parent,**kw)
+        self.grab_set()
+        self.replay_id = self.infowidget.id
+        self.title("Add tag for "+self.infowidget.headers[0])
+        print "Id is: ",self.replay_id 
+        namelabel = tk.Label(self,text="Tag name")
+        timelabel = tk.Label(self,text="Replaytime (mm:ss)")
+
+        self.tagname = tk.Entry(self)
+        self.tagname.bind("<Return>",lambda e : self.tagstamp.focus_set())
+        self.tagstamp = tk.Entry(self)
+        self.tagstamp.bind("<Return>",lambda e : self.tag_add())
+        self.tagname.focus_set()
+        addbutton = tk.Button(self,text="Add",command=self.tag_add)
+
+        namelabel.grid(row=0,column=0,sticky="NSWE")
+        timelabel.grid(row=0,column=1,sticky="NSWE")
+        self.tagname.grid(row=1,column=0,sticky="NSWE")
+        self.tagstamp.grid(row=1,column=1,sticky="NSWE")
+
+        addbutton.grid(row=3,column=0,columnspan=2,sticky="NSWE")
+
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_columnconfigure(1,weight=1)
+        self.geometry("+%d+%d" % (self.infowidget.winfo_rootx()+50,
+                                  self.infowidget.winfo_rooty()+50))
+
+    def tag_add(self):
+        tname = self.tagname.get()
+        tstamp = self.tagstamp.get()
+        with DB_Manager() as dmann:
+            dmann.add_tag(self.replay_id,tname,tstamp)
+            self.taglist.insert(tname,tstamp)
+            self.taglist.see("end")
+        self.tagname.delete(0,"end")
+        self.tagstamp.delete(0,"end")
+        self.tagname.focus_set()
+    def close(self):
+        pass
+
+
 class ReplayManager(tk.Frame):
     def __init__(self,parent, **kw):
         tk.Frame.__init__(self, parent, **kw)
@@ -270,7 +323,7 @@ class TagList(tk.Frame):
         self.tag_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
         self.tag_body.bind("<MouseWheel>",lambda event : self.tag_body.yview("scroll",-event.delta/120,"units"))
         self.scrollbar.config(command=self.tag_body.yview)
-        self.addbutton = tk.Button(self,text="Add tag")
+        self.addbutton = tk.Button(self,text="Add tag",command=lambda taglist=self,parent=parent : tag_popup(taglist,parent))
 
         self.addbutton.grid(row=1,columnspan=2,stick="WE")#.pack(side=tk.BOTTOM,fill=tk.X,expand=1)
         self.scrollbar.grid(row=0,column=1,sticky="SN")#.pack(side=tk.RIGHT, fill=tk.Y)
@@ -278,8 +331,10 @@ class TagList(tk.Frame):
         self.grid_rowconfigure(0,weight=1)
 
     def insert(self,tagname,timestamp):
-        self.tag_body.insert("end",tagname+"@"+timestamp)
+        self.tag_body.insert("end",tagname+" @ "+timestamp)
         self.tag_body.config(width=0)
+    def see(self,index):
+        self.tag_body.see(index)
     def delete(self,index,end):
         self.tag_body.delete(index,end)
 
