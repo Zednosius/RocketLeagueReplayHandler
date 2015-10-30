@@ -25,7 +25,7 @@ class ReplayManager(tk.Frame):
         tk.Button(self,text="Filter").grid(row=2,column=0,sticky="WE")
         tk.Label(self,text="Staged").grid(row=0,column=2,sticky="NS")
         tk.Button(self,text="Unstage").grid(row=2,column=2,sticky="WE")
-
+        
         f  = tk.Frame(self)
         f2 = tk.Frame(self)
         scrollbar = tk.Scrollbar(f, orient=tk.VERTICAL)
@@ -34,7 +34,7 @@ class ReplayManager(tk.Frame):
         scrollbar.config(command=self.replay_list.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.replay_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-
+        self.fetch_replays()
 
         
         scrollbar2 = tk.Scrollbar(f2, orient=tk.VERTICAL)
@@ -43,7 +43,7 @@ class ReplayManager(tk.Frame):
         scrollbar2.config(command=self.staged_list.yview)
         scrollbar2.pack(side=tk.RIGHT, fill=tk.Y)
         self.staged_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-
+        
 
         # self.replay_list.grid(row=1,column=0,sticky="NSWE")
         # self.staged_list.grid(row=1,column=2,sticky="NSWE")
@@ -63,13 +63,10 @@ class ReplayManager(tk.Frame):
         self.grid_columnconfigure(2,weight=1)
         self.grid_rowconfigure(1,weight=1)
 
-    def fetch_replays(**conditions):
-        if not conditions:
-            with DB_Manager() as mann:
-                replays = mann.get_all("replays")
-        else:
-            with DB_Manager() as mann:
-                replays = mann.get_all_where("replays",**conditions)
+    def fetch_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
+
+        with DB_Manager() as mann:
+            replays = mann.filter_replays(replayfilters,tagfilters,playerfilters,groupfilters)
 
         for replay in replays:
             self.replay_list.insert("end",replay[2],replay)
