@@ -10,7 +10,7 @@ def output():
     print "Not implemented"
 root = Tk()
 root.title("Rocket League Replay Handler")
-root.minsize(600,400)
+root.minsize(700,500)
 menu = Menu(root)
 root.config(menu=menu)
 
