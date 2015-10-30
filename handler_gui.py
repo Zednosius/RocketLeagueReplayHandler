@@ -9,7 +9,7 @@ import gui.CustomTkinter as cst
 def output():
     print "Not implemented"
 root = Tk()
-
+root.title("Rocket League Replay Handler")
 
 menu = Menu(root)
 root.config(menu=menu)
