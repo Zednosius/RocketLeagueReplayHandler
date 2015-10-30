@@ -11,6 +11,14 @@ import os
 def clean(string):
     return ''.join(c for c in string if c.isalnum())
 
+def combine_dicts(*args):
+
+    d = {}
+    for dic in args:
+        for k in dic:
+            d[k] = dic[k]
+    return d
+
 class DB_Manager():
     """
     Abstracts away the more low level database interactions.
@@ -47,6 +55,11 @@ class DB_Manager():
             self.conn.execute("INSERT INTO notes VALUES (?, ?);",(ID,note))
             self.dprint("Inserted %s %s into notes",ID,note)
 
+    def update_note(self,ID,note):
+        with self.conn:
+            self.conn.execute("UPDATE notes SET note=? WHERE id=?",(note,ID))
+            self.dprint("Updated note %s",ID)
+
     def add_group(self, group_name):
         with self.conn:
             self.conn.execute("INSERT INTO groups (name) VALUES (?);", (group_name,))
@@ -72,12 +85,47 @@ class DB_Manager():
             if(type(kw[k]) == str):
                 kw[k] = clean(kw[k])
 
-        where_clause = "".join([" %s %s :%s" % (key,kw[key][0],key) for key in kw.keys()])
+        where_clause = " AND ".join([" %s %s :%s" % (key,kw[key][0],key) for key in kw.keys()])
         kw = {k:v[1] for (k,v) in kw.items()}
-        print "SELECT * FROM "+table+" WHERE "+where_clause
+        self.dprint("SELECT * FROM "+table+" WHERE "+where_clause)
+        print "allw kws: ",kw
         with self.conn:
             return self.conn.execute("SELECT * FROM "+table+" WHERE "+where_clause,kw).fetchall()
 
+    def filter_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
+        print replayfilters,tagfilters,playerfilters,groupfilters
+        query = "SELECT * FROM replays R " 
+        if replayfilters:
+            replay_where = self.get_where_clause("R",replayfilters)
+            query += "where " + replay_where
+
+        if tagfilters:
+            tag_where = self.get_where_clause("T",tagfilters)
+            tag_select = "SELECT * FROM tags T where R.id = T.id AND " + tag_where
+            query += " AND EXISTS("+tag_select+")"
+
+        if playerfilters:
+            player_where = self.get_where_clause("P",playerfilters)
+            player_select ="SELECT * from teams P where R.id = P.id AND "+player_where
+            query += " AND EXISTS("+player_select+")"
+
+        if groupfilters:
+            group_where = self.get_where_clause("GM",groupfilters)
+            group_select = "SELECT * FROM group G inner join group_members GM on G.g_id=GM.g_id WHERE R.id=G.id "+group_where
+            query += " AND EXISTS("+group_select+")"
+
+        kw = combine_dicts(replayfilters,tagfilters,playerfilters,groupfilters)
+        print "keys: ",kw
+        kw = {k:v[1] for (k,v) in kw.items()}
+        print "query:",query,"kws:",kw
+
+        with self.conn:
+            return self.conn.execute(query,kw).fetchall()
+
+        "SELECT * FROM replays R WHERE <replayfilters>  \
+        AND EXISTS (SELECT T.id FROM tags T WHERE <tagfilters>) \
+        AND EXISTS (SELECT P.id FROM teams P WHERE <playerfilters>\
+        AND EXISTS (SELECT G.id FROM (SELECT * from group g inner join group_members gm on g.g_id=gm.g_id AND g.name=groupname"
     def close(self):   
         self.conn.close()
 
@@ -88,14 +136,18 @@ class DB_Manager():
     def __exit__(self ,type, value, traceback):
         self.close()
 
+    def get_where_clause(self,table_alias,kw):
+        return " AND ".join([table_alias+".%s %s :%s" % (key,kw[key][0],key) for key in kw.keys()])
 
     def dprint(self,msg,*arg):
         if self.debug:
             print msg % arg
 
 if __name__ == '__main__':
-    with DB_Manager() as mann:
-        print mann.get_all("replays")
-        print mann.get_all_where("replays",filename=("=","hurr"))
-        print mann.get_all_where("replays",map=("=","Durrtown"))
-        print mann.get_all_where("replays",id=(">",1))
+    with DB_Manager(debug=True) as mann:
+        # print mann.get_all("replays")
+        # print mann.get_all_where("replays",filename=("=","hurr"))
+        # print mann.get_all_where("replays",map=("=","Durrtown"))
+        # print mann.get_all_where("replays",id=(">",1))
+        mann.get_all_where("replays",id=(">",1),map=("=","DFH Stadium"))
+        print mann.filter_replays(replayfilters=dict(map=("=","DFH Stadium")),tagfilters=dict(),playerfilters=dict(playername=("=","C-Block")),groupfilters=dict())
