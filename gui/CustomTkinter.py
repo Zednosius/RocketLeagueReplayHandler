@@ -17,15 +17,14 @@ class ReplayManager(tk.Frame):
 
         Lb1 = DragDropList(self)
         for replay in replays:
-            Lb1.insert("end",replay[1],replay)
+            Lb1.insert("end",replay[2],replay)
         Lb1.grid(row=0,column=0,sticky="NSWE")
 
         Lb2 = DragDropList(self)
         Lb2.grid(row=0,column=2,sticky="NSWE")
 
-        self.info = tk.Frame(self,width=100,height=100)#ReplayInfoFrame(self,headers=["MyReplay","Utopia Stadium","2015-03-12:22-22"],bg="orange")
+        self.info = ReplayInfoFrame(self,width=100,height=100)#tk.Frame(self,width=100,height=100)
 
-        # info.pack(fill="x",anchor="n")
         self.info.grid(row=0,column=1)
 
         Lb1.link(Lb2)
@@ -36,10 +35,10 @@ class ReplayManager(tk.Frame):
         self.grid_columnconfigure(2,weight=1)
         self.grid_rowconfigure(0,weight=1)
 
-    def replay_doubleclicked(self,variables):
-        self.info.grid_forget()
-        self.info = ReplayInfoFrame(self,headers=list(variables),bg="orange")
-        self.info.grid(row=0,column=1)
+    def replay_displayinfo(self,variables):
+        self.info.use_headers(list(variables))
+        self.info.init()
+
         
 
 class DragDropList(tk.Listbox):
@@ -53,24 +52,48 @@ class DragDropList(tk.Listbox):
         self.bind('<ButtonRelease-1>', self.release)
         self.bind('<B1-Motion>',self.motion)
         self.bind('<Shift-B1-Motion>',self.motion_reverse)
-        self.bind('<Double-ButtonPress-1>',self.notify_parent_doubleclick)
+        self.bind('<Double-ButtonPress-1>',self.notify_parent_displayinfo)
+        self.bind('<space>',self.notify_parent_displayinfo)
+        self.bind('<Up>',lambda e,di=-1:self.select_arrow(e,di))
+        self.bind('<Down>',lambda e,di=1:self.select_arrow(e,di))
+        self.bind('<Left>',lambda e:self.otherDropList.focus_set())
+        self.bind('<Right>',lambda e:self.otherDropList.focus_set())
+        self.bind('<Return>',self.enter_press)
+
         self.variables = []
 
     def link(self,otherDropList):
         self.otherDropList = otherDropList
 
-    def notify_parent_doubleclick(self,event):
-        item = self.nearest(event.y)
+    def select_arrow(self,event,di):
+        selected = self.curselection()
+        if len(selected) == 1:
+            print self.size()
+            print "mov to: ",(self.itemdown+di) % self.size()
+            self.selection_set((self.itemdown+di) % self.size())
+            self.selection_clear(self.itemdown)
+            self.itemdown = (self.itemdown+di) % self.size()
+        elif len(selected) == 0 and self.size() > 0:
+            self.selection_set(0)
+            self.itemdown = 0
+
+    def notify_parent_displayinfo(self, event):
+        if not hasattr(event,'keysym'):
+            item = self.nearest(event.y)
+        else:
+            item = self.itemdown
         resolved = False 
+        
         while not resolved:
             parent = event.widget.winfo_parent()
+
             if parent =="":
                 break
             else:
                 print parent
             wid = self.nametowidget(parent)
 
-            notify = getattr(wid,"replay_doubleclicked",None)
+            notify = getattr(wid,"replay_displayinfo",None)
             if callable(notify):
                 resolved = True
                 notify(self.variables[int(item)])
@@ -78,6 +101,7 @@ class DragDropList(tk.Listbox):
 
     def set_current(self, event):
         """Selects an item"""
+        self.focus_set()
         self.itemdown = self.nearest(event.y)
         self.itemdown_pre = self.selection_includes(self.itemdown)
         self.selection_set(self.itemdown)
@@ -131,7 +155,7 @@ class DragDropList(tk.Listbox):
     def insert(self,idx,text,variables):
         tk.Listbox.insert(self,idx,text)
         self.variables.insert(self.size(),variables)
-        print self.variables
+        # print self.variables
 
         
 
@@ -154,24 +178,38 @@ class DragDropList(tk.Listbox):
             self.variables.pop(int(d))
 
         print items
+        y = event.y_root-ot.winfo_rooty()
+        i = ot.nearest(y)
 
         for item in reversed(items):
-
-            y = event.y_root-ot.winfo_rooty()
-
             if ot.nearest(y) == -1:
                 ot.insert("end",item,varl.pop())
+                i = ot.nearest(y)
                 continue
-            i = ot.nearest(y)
+            
             # print i
             bbox = ot.bbox(i)
             if bbox==None or bbox[3]/2.0 > y: 
                 ot.insert(i,item,varl.pop())
             else:
                 ot.insert(i+1,item,varl.pop())
+            i += 1
 
-        print "me",self.variables
-        print "other",self.otherDropList.variables
+        # print "me",self.variables
+        # print "other",self.otherDropList.variables
+
+    def enter_press(self,event):
+        self.release_linked(event)
+        if not hasattr(self,'itemdown'): return
+
+        if self.size() == 0:
+            return
+        if self.size()-1 < self.itemdown:
+            self.selection_set(self.itemdown-1)
+            self.itemdown = self.itemdown-1
+        else:
+            self.selection_set(self.itemdown)
+            print "select, ",self.itemdown
 
     def contains(self,event):
         """Check if an event took place inside the container"""
@@ -182,8 +220,8 @@ class DragDropList(tk.Listbox):
 
 
 #http://stackoverflow.com/questions/1966929/tk-treeview-column-sort
-def treeview_sort_column(tv, col, reverse):
-        l = [(tv.set(k, col), k) for k in tv.get_children('')]
+def treeview_sort_column(tv, col, reverse,cast):
+        l = [(cast(tv.set(k, col)), k) for k in tv.get_children('')]
         l.sort(reverse=reverse)
 
         # rearrange items in sorted positions
@@ -192,7 +230,7 @@ def treeview_sort_column(tv, col, reverse):
 
         # reverse sort next time
         tv.heading(col, command=lambda: \
-                   treeview_sort_column(tv, col, not reverse))
+                   treeview_sort_column(tv, col, not reverse,cast))
 
 
 class TagList(tk.Frame):
@@ -220,7 +258,6 @@ class ReplayInfoFrame(tk.Frame):
         return "break"
 
     def make_table(self):
-        self.table = ttk.Treeview(self,selectmode="none",height=6)
         
         self.table.bind_class(self.table,"<B1-Motion>",self.motion)
 
@@ -231,65 +268,112 @@ class ReplayInfoFrame(tk.Frame):
         style.configure('Treeview', rowheight=40)
 
         #Set up headings
-        self.table.heading("#1", text="Player",command=lambda:treeview_sort_column(self.table, "#1", False))
-        self.table.heading("#2", text="Team",command=lambda:treeview_sort_column(self.table , "#2", False))
-        self.table.heading("#3", text="Goals",command=lambda:treeview_sort_column(self.table, "#3", False))
-        self.table.heading("#4", text="Saves",command=lambda:treeview_sort_column(self.table, "#4", False))
+        self.table.heading("#1", text="Player",command=lambda:treeview_sort_column(self.table, "#1", False,str))
+        self.table.heading("#2", text="Team",command=lambda:treeview_sort_column(self.table , "#2", False,int))
+        self.table.heading("#3", text="Goals",command=lambda:treeview_sort_column(self.table, "#3", False,int))
+        self.table.heading("#4", text="Saves",command=lambda:treeview_sort_column(self.table, "#4", False,int))
        
         #Remove the first column
         self.table.column("#0",width=0,minwidth=0)
-
+        self.table_insert_values()
+        
+    def table_insert_values(self):
+        self.table.delete(*self.table.get_children())
         for col in self.allcols:
             self.table.column(col,anchor='center',minwidth=50,width=60)
-
+        f = lambda vals : val
         for values in self.values:
             self.table.insert("", "end",
-             values=values,
-             tags=("red" if values[0] == 1 else "blue"))
+             values=values[1:],
+             tags=("red" if int(values[2]) == 1 else "blue"))
 
-            if(self.table.column("#1","width") < self.mFont.measure(values[0])): #Adjust table column size if needed
-                self.table.column("#1",width=int(self.mFont.measure(values[0])*1.2))
+            if(self.table.column("#1","width") < self.mFont.measure(values[1])): #Adjust table column size if needed
+                self.table.column("#1",width=int(self.mFont.measure(values[1])*1.2))
 
 
         self.table.tag_configure('red' , background='#FF6A6A',font=self.mFont)
         self.table.tag_configure('blue', background='#82CFFD',font=self.mFont)
 
-
-    def __init__(self,parent,**kw):
-        self.headers = kw.pop("headers",[])
-        self.values = kw.pop("value",[])
-        self.id = self.headers.pop(0)
-        self.filename = self.headers.pop(0)
+    def populate_headers(self):
+        added = False
+        for i in range(0,len(self.headers)):
+            print "headr: ",self.headers[i]
+            if(len(self.headervars) > i):
+                print "replacing header ",self.headervars[i],"with",self.headers[i]
+                self.headervars[i].set(self.headers[i])
+            else:
+                print "added headerlabel", len(self.headervars)
+                lbl = self.add_header_label(self.headers[i])
+                added = True
+        if added:
+            lbl.grid(stick="WNSE")        
         
-        tk.Frame.__init__(self,parent,kw)
-        
-        self.mFont = tkFont.Font(family="Helvetica",size=14)
 
 
+    def use_headers(self,headers):
+        self.headers = headers
+        if headers:  
+            self.id = self.headers.pop(0)
+            self.filename = self.headers.pop(0)
+            if(len(self.headervars) == len(self.headers)):
+                self.populate_headers()
+
+    def load_from_db(self):
         with DB_Manager() as mann:
-            teams = mann.get_all_where("teams",id=("=",self.id))
+            self.values = mann.get_all_where("teams",id=("=",self.id))
+            print self.values
 
+    def add_header_label(self,header):
+        strvar = tk.StringVar()
+        strvar.set(header)
+        lbl = tk.Label(self.replay_header,font=self.mFont,textvariable=strvar,relief=tk.RAISED,wraplength="300")
+        col = self.headers.index(header)
+        self.headervars.append(strvar)
+        lbl.grid(row=0,column=col,sticky="NS")
+        self.replay_header.colnum=col
+        return lbl
 
-        #Make the top info: name,map,date
-        self.replay_header =tk.Frame(self, background="red")
-        self.replay_header.grid(sticky="WE")
-        for header in self.headers:
-            lbl = tk.Label(self.replay_header,font=self.mFont,text=header,relief=tk.RAISED,wraplength="300")
-            col = self.headers.index(header)
-            lbl.grid(row=0,column=col,sticky="NS")
-        lbl.grid(stick="WNSE")
-        self.replay_header.grid_columnconfigure(col,weight=1)
+    def init(self):
+        self.load_from_db()
+
+        self.populate_headers()
+        self.replay_header.grid_columnconfigure(self.replay_header.colnum,weight=1)
+       
         self.make_table()
+        self.table.configure(height=len(self.values))
 
 
         #Create the body for tags
+
+
+
+    def __init__(self,parent,**kw):
+        self.headervars = []
+
+        self.use_headers(kw.pop("headers",[]))
+
+        tk.Frame.__init__(self,parent,kw)
+        
+        self.mFont = tkFont.Font(family="Helvetica",size=14)
+                #Make the top info: name,map,date
+        self.replay_header =tk.Frame(self, background="red")
+        self.replay_header.grid(sticky="WE")
+        self.table = ttk.Treeview(self,selectmode="none")
+        if self.headers:
+            self.init()
+            
+        
         self.taglist = TagList(self,mFont=self.mFont)
+
         self.taglist.grid(row=1,column=2,sticky="NS")
-        self.note_body =tk.Frame(self, background="red")
+        self.note_body = tk.Frame(self, background="red")
 
         self.replay_header.grid(row=0,column=0,columnspan=3)
 
-        self.table.grid(        row=1,column=0,columnspan=2)
+        self.table.grid(        row=1,column=0,columnspan=2,sticky="NS")
 
         self.note_body.grid(    row=2,column=0,columnspan=3)
+
+
+        
 
