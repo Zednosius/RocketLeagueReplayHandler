@@ -17,8 +17,8 @@ class DB_Manager():
     
     Use either 'with DB_Manager() as foo' or create it and the call close() when done.
     """
-    def __init__(self,debug=False):
-        self.conn = sqlite3.connect("rocketleague.db")
+    def __init__(self,loc="rocketleague.db",debug=False):
+        self.conn = sqlite3.connect(loc)
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.debug = debug
 
