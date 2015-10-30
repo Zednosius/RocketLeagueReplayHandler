@@ -15,11 +15,12 @@ class ReplayManager(tk.Frame):
             replays = mann.get_all("replays")
         # print replays
         tk.Label(self,text="Replays").grid(row=0,column=0,sticky="NS")
-        tk.Button(self,text="Filter").grid(row=2,column=0)
+        tk.Button(self,text="Filter").grid(row=2,column=0,sticky="WE")
         tk.Label(self,text="Staged").grid(row=0,column=2,sticky="NS")
+
+
         f  = tk.Frame(self)
         f2 = tk.Frame(self)
-
         scrollbar = tk.Scrollbar(f, orient=tk.VERTICAL)
         Lb1 = DragDropList(f,yscrollcommand=scrollbar.set)
         Lb1.bind("<MouseWheel>",lambda event : Lb1.yview("scroll",-event.delta/120,"units"))
@@ -45,15 +46,15 @@ class ReplayManager(tk.Frame):
         f2.grid(row=1,column=2,sticky="NSWE")
 
 
-        self.info = ReplayInfoFrame(self,width=100,height=100)#tk.Frame(self,width=100,height=100)
+        self.info = ReplayInfoFrame(self,bg="green")#tk.Frame(self,width=100,height=100)
 
-        self.info.grid(row=1,column=1)
+        self.info.grid(row=1,column=1,rowspan=2,sticky="NS")
 
         Lb1.link(Lb2)
         Lb2.link(Lb1)
 
         self.grid_columnconfigure(0,weight=1)
-        self.grid_columnconfigure(1,weight=1)
+        # self.grid_columnconfigure(1,weight=1)
         self.grid_columnconfigure(2,weight=1)
         self.grid_rowconfigure(1,weight=1)
 
@@ -262,16 +263,19 @@ def treeview_sort_column(tv, col, reverse,cast):
 
 class TagList(tk.Frame):
     def __init__(self,parent,**kw):
-        self.mFont = kw.pop("mFont")
+        self.mFont = kw.pop("mFont",tkFont.nametofont("TkDefaultFont"))
         tk.Frame.__init__(self,parent,kw)
         
         self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
         self.tag_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
         self.tag_body.bind("<MouseWheel>",lambda event : self.tag_body.yview("scroll",-event.delta/120,"units"))
         self.scrollbar.config(command=self.tag_body.yview)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.tag_body.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-        
+        self.addbutton = tk.Button(self,text="Add tag")
+
+        self.addbutton.grid(row=1,columnspan=2,stick="WE")#.pack(side=tk.BOTTOM,fill=tk.X,expand=1)
+        self.scrollbar.grid(row=0,column=1,sticky="SN")#.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tag_body.grid(row=0,column=0,sticky="NSWE")#.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+        self.grid_rowconfigure(0,weight=1)
 
     def insert(self,tagname,timestamp):
         self.tag_body.insert("end",tagname+"@"+timestamp)
@@ -294,23 +298,26 @@ class ReplayInfoFrame(tk.Frame):
         self.table["columns"] =["#1","#2","#3","#4"]
         style = ttk.Style(self)
         style.configure('Treeview', rowheight=40)
-
+        self.table['show'] = 'headings'
         #Set up headings
         self.table.heading("#1", text="Player",command=lambda:treeview_sort_column(self.table, "#1", False,str))
-        self.table.heading("#2", text="Team",command=lambda:treeview_sort_column(self.table , "#2", False,int))
-        self.table.heading("#3", text="Goals",command=lambda:treeview_sort_column(self.table, "#3", False,int))
-        self.table.heading("#4", text="Saves",command=lambda:treeview_sort_column(self.table, "#4", False,int))
-       
+        self.table.heading("#2", text="Team"  ,command=lambda:treeview_sort_column(self.table , "#2", False,int))
+        self.table.heading("#3", text="Goals" ,command=lambda:treeview_sort_column(self.table, "#3", False,int))
+        self.table.heading("#4", text="Saves" ,command=lambda:treeview_sort_column(self.table, "#4", False,int))
+        
+        
         #Remove the first column
         self.table.column("#0",width=0,minwidth=0)
         self.table_insert_values()
-        
+        print "wh",self.table.winfo_width(),self.table.winfo_height()
+
     def table_insert_values(self):
         """Inserts all values in self.values into the table"""
         self.table.delete(*self.table.get_children())
         for col in self.allcols:
-            self.table.column(col,anchor='center',minwidth=50,width=60)
-        f = lambda vals : val
+            self.table.column(col,anchor='center',minwidth=75,width=75,stretch=True)
+
+
         for values in self.values:
             self.table.insert("", "end",
              values=values[1:],
@@ -318,7 +325,8 @@ class ReplayInfoFrame(tk.Frame):
 
             if(self.table.column("#1","width") < self.mFont.measure(values[1])): #Adjust table column size if needed
                 self.table.column("#1",width=int(self.mFont.measure(values[1])*1.2))
-
+                print "Adjusted columnsize"
+        
 
         self.table.tag_configure('red' , background='#FF6A6A',font=self.mFont)
         self.table.tag_configure('blue', background='#82CFFD',font=self.mFont)
@@ -329,14 +337,11 @@ class ReplayInfoFrame(tk.Frame):
         for i in range(0,len(self.headers)):
             # print "headr: ",self.headers[i]
             if(len(self.headervars) > i):
-                # print "replacing header ",self.headervars[i],"with",self.headers[i]
                 self.headervars[i].set(self.headers[i])
             else:
-                # print "added headerlabel", len(self.headervars)
                 lbl = self.add_header_label(self.headers[i])
                 added = True
-        if added:
-            lbl.grid(stick="WNSE")        
+                   
         
 
 
@@ -360,20 +365,20 @@ class ReplayInfoFrame(tk.Frame):
         """Add label for a header value"""
         strvar = tk.StringVar()
         strvar.set(header)
-        lbl = tk.Label(self.replay_header,font=self.mFont,textvariable=strvar,relief=tk.RAISED,wraplength="300")
+        lbl = tk.Label(self.replay_header,textvariable=strvar,relief=tk.RAISED,wraplength="300")
         col = self.headers.index(header)
         self.headervars.append(strvar)
-        lbl.grid(row=0,column=col,sticky="NS")
-        self.replay_header.colnum=col
+        lbl.grid(row=0,column=col,sticky="NSWE")
+        self.replay_header.grid_columnconfigure(col,weight=1)
         return lbl
 
     def init(self):
         """Construct self given values, self.headers need to be set so that associated data can be found."""
         self.load_values_from_db()
         self.populate_headers()
-        self.replay_header.grid_columnconfigure(self.replay_header.colnum,weight=1)
+        self.table.configure(height=len(self.values) if len(self.values) > 2 else 4)
         self.make_table()
-        self.table.configure(height=len(self.values))
+        
         self.taglist.delete(0,"end")
         for (_,tag,time) in self.tags:
             self.taglist.insert(tag,time)
@@ -388,26 +393,40 @@ class ReplayInfoFrame(tk.Frame):
         
         self.mFont = tkFont.Font(family="Helvetica",size=14)
         #Make the top info: name,map,date
-        self.replay_header =tk.Frame(self)
+       
 
-        self.replay_header.grid(sticky="WE")
+        #Table with tags on the side
+        tableframe = tk.Frame(self)
+        self.replay_header = tk.Frame(tableframe)
+        self.table = ttk.Treeview(tableframe,selectmode="none")
+        self.replay_header.grid(row=0,column=0,sticky="WNE")
+        self.table.grid(row=1,column=0,sticky="N")
+        tableframe.grid(row=0,column=0,sticky="N")
+        #############################
 
-        self.table = ttk.Treeview(self,selectmode="none")
 
+        self.taglist = TagList(self)
+        self.taglist.grid(row=0,column=1,rowspan=2,sticky="NSWE")
+
+        self.note_frame = tk.Frame(self)
+        scrollbar = tk.Scrollbar(self.note_frame)
+        self.note_body= tk.Text(self.note_frame,height=4,width=30)
+        scrollbar.config(command=self.note_body.yview)
+
+        self.note_body.config(yscrollcommand=scrollbar.set)
+        self.note_body.grid(row=0,column=0,sticky="NSWE")
+        scrollbar.grid(row=0,column=1,sticky="NSE")
+
+        self.note_body.insert("end","LOREM IPSUM DOLOR")
+        self.note_frame.grid_columnconfigure(0,weight=1)
+        self.note_frame.grid(row=2,column=0,columnspan=2,sticky="NSWE")
+        self.note_body.config(state=tk.DISABLED)
         if self.headers:
             self.init()
-            
+        self.grid_rowconfigure(2,weight=1)
+        self.grid_columnconfigure(0,weight=1)
         
-        self.taglist = TagList(self,mFont=self.mFont)
-
-        self.taglist.grid(row=1,column=2,sticky="NS")
-        self.note_body = tk.Frame(self)
-
-        self.replay_header.grid(row=0,column=0,columnspan=3)
-
-        self.table.grid(        row=1,column=0,columnspan=2,sticky="NS")
-
-        self.note_body.grid(    row=2,column=0,columnspan=3)
+        
 
 
         
