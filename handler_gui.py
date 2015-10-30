@@ -4,13 +4,13 @@
 #See LICENSE for more information
 from Tkinter import *
 import ttk
-import gui.CustomTkinter as cst
+import gui.HandlerApplication as cst
 
 def output():
     print "Not implemented"
 root = Tk()
 root.title("Rocket League Replay Handler")
-
+root.minsize(600,400)
 menu = Menu(root)
 root.config(menu=menu)
 

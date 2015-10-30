@@ -51,3 +51,10 @@ class TagPopup(tk.Toplevel):
         self.tagname.focus_set()
     def close(self):
         pass
+
+class FilterPopup(tk.Toplevel):
+
+    filter_options = ["replay name","map name","player name",]
+
+    def __init__(self,parent,**kw):
+        tk.Toplevel.__init__(parent,**kw)
