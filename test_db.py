@@ -74,6 +74,7 @@ def populate_test(loc=":memory:"):
             i = c.lastrowid
             conn.executemany(team_insert, randplayerlist(i))
             conn.executemany(tag_insert, randtags(i))
+            conn.execute("INSERT INTO notes (id,note) VALUES (?,?)",(i,""))
 
         c = conn.execute("INSERT INTO replays (filename,name,map,datetime) VALUES (?,?,?,?)",
             ("297C8C31452A4D33E9EF5A92DCBF3A1A","Big Tourny 2:2","Urban Central","2015-10-10:21-49"))
