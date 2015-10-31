@@ -38,8 +38,11 @@ class ReplayList(tk.Listbox):
             self.selected_item = 0
 
     def notify_parent_displayinfo(self, event):
+        if not self.curselection():return
+        print self.curselection()
         resolved = False 
         parent = event.widget.winfo_parent()
+        self.selected_item = self.curselection()[0]
         while not resolved and self.size() > 0:
             if parent =="":
                 break
@@ -54,6 +57,7 @@ class ReplayList(tk.Listbox):
             parent = wid.winfo_parent()
 
     def transfer_selection(self):
+        if not hasattr(self,"otherDropList"):return
         l = self.curselection()
         items = []
         variables = []
@@ -86,7 +90,8 @@ class ReplayList(tk.Listbox):
         tk.Listbox.insert(self,idx,text)
         self.variables.insert(self.size(),variables)
         # print self.variables
-
+    def get_variables(self,index):
+        return self.variables[index]
     def enter_press(self,event):
         if not hasattr(self,'selected_item'): return
         self.transfer_selection()
