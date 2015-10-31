@@ -6,11 +6,13 @@ import Tkinter as tk
 import ttk
 import tkFont
 import datetime
+import shutil
 from db_manager import *
 from DragDropList import *
 from Popups import *
 from ReplayInfoFrame import *
 from ReplayList import *
+from ReplayEditFrame import *
 from os.path import expanduser
 import errno
 
@@ -85,21 +87,27 @@ class ReplayManager(tk.Frame):
         frame.grid_rowconfigure(1,weight=1)
 
     def start_add_mode(self,frame):
-        tk.Label(frame,text="Untracked Replays").grid(row=0,column=0,sticky="NS")
+        print "Addmode"
+        tk.Label(frame,text="Untracked Replays").grid(row=0,column=0,sticky="NSWE")
         frame.replay_displayinfo = self.replay_display_edit
         f  = tk.Frame(frame)
         scrollbar = tk.Scrollbar(f, orient=tk.VERTICAL)
         self.untracked_replays = ReplayList(f,yscrollcommand=scrollbar.set)
-        self.untracked_replays.bind("<MouseWheel>",lambda event : self.replay_list.yview("scroll",-event.delta/120,"units"))
-        scrollbar.config(command=self.replay_list.yview)
+        self.untracked_replays.bind("<MouseWheel>",lambda event : self.untracked_replays.yview("scroll",-event.delta/120,"units"))
+        scrollbar.config(command=self.untracked_replays.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.untracked_replays.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
         f.grid(row=1,column=0,sticky="NSWE")
+        
         self.scan_and_fetch_untracked()
 
+
+        self.edit_frame = ReplayEditFrame(frame)
+        self.edit_frame.grid(row=1,column=1,sticky="NSE")
+
         frame.grid_columnconfigure(0,weight=1)
+        frame.grid_columnconfigure(1,weight=0)
         frame.grid_columnconfigure(2,weight=1)
-        frame.grid_rowconfigure(1,weight=1)
 
 
     def fetch_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
@@ -111,17 +119,36 @@ class ReplayManager(tk.Frame):
 
     def scan_and_fetch_untracked(self):
         p = expanduser("~")+self._default_path
+        untracked = p+"\\untracked"
+        print "Scanning for new replays"
         with DB_Manager() as dmann:
             for f in os.listdir(p):
                 filename = os.path.splitext(f)[0]
                 fullpath = p+"\\"+f
-                
+                stat = os.stat(fullpath)
+                print "On file: "+f
                 if os.path.isfile(fullpath) and not dmann.replay_exists(filename):
-                    time = datetime.datetime.fromtimestamp(os.path.getmtime(fullpath)).strftime("%Y-%m-%d-%H:%M")
-                    self.untracked_replays.insert("end","Replay "+time,(os.path.splitext(f)[0],time))
+                    print "%s was not in database"%(filename)
+                    try:
+                        shutil.copy2(fullpath,untracked+"\\"+f)
+                        os.remove(fullpath)
+                        print "Moved %s to untracked"
+                    except Exception, e:
+                        print "Error during file handling"
+                        print e
+                else:
+                    print "%s existed in database"%(f)
+
+            
+        for f in os.listdir(untracked):
+            filename = os.path.splitext(f)[0]
+            fullpath = untracked+"\\"+f
+            time = datetime.datetime.fromtimestamp(os.path.getmtime(fullpath)).strftime("%Y-%m-%d-%H:%M")
+            self.untracked_replays.insert("end","Replay "+str(time),(filename,time,fullpath))
+                    
 
     def replay_display_edit(self,variables):
-        print "wololo",variables
+        self.edit_frame.display_new(list(variables))
 
     def replay_displayinfo(self,variables):
         #print "Displaying new info",variables
