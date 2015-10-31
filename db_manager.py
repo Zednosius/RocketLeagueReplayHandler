@@ -34,7 +34,9 @@ class DB_Manager():
         with self.conn:
             self.conn.execute("INSERT INTO replays (filename,name,map,datetime) VALUES (?, ?, ?, ?);", (filename, name, mapname,datetime))
             self.dprint("Inserted %s %s %s %s into replays ",filename,name,mapname,datetime)
-
+    def replay_exists(self,filename):
+        with self.conn:
+            return self.conn.execute("SELECT 1 from replays WHERE filename=?",(filename,)).fetchone()
     def add_team(self,ID,teamNum,player_name,goals=None,saves=None):
         with self.conn:
             self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?);",(ID,teamNum,player_name,goals,saves))
@@ -88,7 +90,7 @@ class DB_Manager():
         where_clause = " AND ".join([" %s %s :%s" % (key,kw[key][0],key) for key in kw.keys()])
         kw = {k:v[1] for (k,v) in kw.items()}
         self.dprint("SELECT * FROM "+table+" WHERE "+where_clause)
-        print "allw kws: ",kw
+        # print "allw kws: ",kw
         with self.conn:
             return self.conn.execute("SELECT * FROM "+table+" WHERE "+where_clause,kw).fetchall()
 
@@ -151,3 +153,5 @@ if __name__ == '__main__':
         # print mann.get_all_where("replays",id=(">",1))
         mann.get_all_where("replays",id=(">",1),map=("=","DFH Stadium"))
         print mann.filter_replays(replayfilters=dict(map=("=","DFH Stadium")),tagfilters=dict(),playerfilters=dict(playername=("=","C-Block")),groupfilters=dict())
+        print mann.replay_exists("2J8GR5U4AXHFEPNQW9DZK371T6Y0BOMS")
+        print mann.replay_exists("2J8GR5U4AXHFEPNQW9")
