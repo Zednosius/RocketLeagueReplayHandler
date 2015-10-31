@@ -51,6 +51,7 @@ class ReplayInfoFrame(tk.Frame):
        # print "wh",self.table.winfo_width(),self.table.winfo_height()
 
     def table_insert_values(self):
+        print self.values
         """Inserts all values in self.values into the table"""
         self.table.delete(*self.table.get_children())
         for col in self.allcols:
@@ -67,7 +68,7 @@ class ReplayInfoFrame(tk.Frame):
                 #print "Adjusted columnsize"
         
 
-        self.table.tag_configure('red' , background='#FF6A6A',font=self.mFont)
+        self.table.tag_configure('red' , background='#FF7F00',font=self.mFont)
         self.table.tag_configure('blue', background='#82CFFD',font=self.mFont)
 
     def populate_headers(self):
