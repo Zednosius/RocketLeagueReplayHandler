@@ -37,12 +37,13 @@ class ReplayList(tk.Listbox):
             self.selection_set(0)
             self.selected_item = 0
 
-    def notify_parent_displayinfo(self, event):
+    def notify_parent_displayinfo(self, event,useSelection=True):
         if not self.curselection():return
         print self.curselection()
         resolved = False 
         parent = event.widget.winfo_parent()
-        self.selected_item = self.curselection()[0]
+        if useSelection:
+            self.selected_item = self.curselection()[0]
         while not resolved and self.size() > 0:
             if parent =="":
                 break
@@ -72,7 +73,7 @@ class ReplayList(tk.Listbox):
 
     def show_clicked(self,event):
         self.selected_item = self.nearest(event.y)
-        self.notify_parent_displayinfo(event)
+        self.notify_parent_displayinfo(event,False)
 
     def selection_toggle(self, x,unselect=False,select=False):
         """Toggles an item between selected and unselected"""
