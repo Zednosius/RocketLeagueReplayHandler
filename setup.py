@@ -14,7 +14,6 @@ def initdb(loc="rocketleague.db"):
     conn = sqlite3.connect(loc)
     conn.execute("PRAGMA foreign_keys = ON")
     with conn:      
-
         #ID; FILENAME; NAME; MAP;
         conn.execute("CREATE TABLE replays (id INTEGER PRIMARY KEY, filename text UNIQUE, name text, map text, datetime text);")
         
@@ -22,7 +21,7 @@ def initdb(loc="rocketleague.db"):
         conn.execute("CREATE TABLE match_data (id integer REFERENCES replays ON DELETE CASCADE, team integer, playercount integer, goals integer, saves integer);")
         
         #ID(fk);TEAM; PLAYERNAME; GOALS; SAVES; (information about a player in a match)
-        conn.execute("CREATE TABLE teams (id integer REFERENCES replays ON DELETE CASCADE, playername text, team integer, goals integer, saves integer);")
+        conn.execute("CREATE TABLE teams (id integer REFERENCES replays ON DELETE CASCADE, playername text, team integer, goals integer, saves integer,shots integer, assists integer, score integer);")
         
         #ID(fk);TAGNAME;TIMESTAMP; (User created time tags for a match)
         conn.execute("CREATE TABLE tags (id integer REFERENCES replays ON DELETE CASCADE, tagname text, timestamp integer);")
