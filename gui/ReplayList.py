@@ -13,7 +13,8 @@ class ReplayList(tk.Listbox):
     def __init__(self, parent, **kw):
         self.parent = parent
         tk.Listbox.__init__(self, parent, kw)
-
+        self.insert_callback = None
+        self.delete_callback = None
         self.bind('<space>',self.notify_parent_displayinfo)
         self.bind('<ButtonPress-1>', self.click)
 
@@ -61,8 +62,6 @@ class ReplayList(tk.Listbox):
         while not resolved and self.size() > 0:
             if parent =="":
                 return "break"
-            # else:
-            #     print parent
             wid = self.nametowidget(parent)
 
             notify = getattr(wid,"replay_displayinfo",None)
@@ -103,17 +102,27 @@ class ReplayList(tk.Listbox):
             self.selection_set(x)
 
     def insert(self,idx,text,variables):
+        if self.insert_callback:
+            self.insert_callback(variables)
+
         tk.Listbox.insert(self,idx,text)
         if idx == "end":
             self.variables.append(variables)
         else:
             self.variables.insert(idx,variables)
         # print self.variables
+
+    def set_insert_callback(self,callback):
+        self.insert_callback = callback
+    def set_delete_callback(self,callback):
+        self.delete_callback = callback
     def get_variables(self,index):
         return self.variables[index]
 
     def delete(self,start,end=None):
         tk.Listbox.delete(self,start,end)
+        if self.delete_callback:
+            self.delete_callback(self.variables[start:end if end != None else start+1])
         print "Var amt: ",len(self.variables)
         if not end:
             print "Deleting: ",self.variables.pop(start)
