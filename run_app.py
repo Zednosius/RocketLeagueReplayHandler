@@ -5,6 +5,10 @@
 from Tkinter import *
 import ttk
 import gui.HandlerApplication as cst
+import sys
+import os
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 def output():
     print "Not implemented"
@@ -12,6 +16,9 @@ def output():
 def on_exit():
     rman.save()
     root.destroy()
+if not os.path.isfile(__location__+"\\rocketleague.db"):
+    import setup
+    setup.initdb()
 
 root = Tk()
 root.title("Rocket League Replay Handler")
