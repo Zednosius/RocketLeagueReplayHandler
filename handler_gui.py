@@ -8,6 +8,11 @@ import gui.HandlerApplication as cst
 
 def output():
     print "Not implemented"
+
+def on_exit():
+    rman.save()
+    root.destroy()
+
 root = Tk()
 root.title("Rocket League Replay Handler")
 root.minsize(700,500)
@@ -25,6 +30,7 @@ helpmenu = Menu(menu)
 menu.add_cascade(label="Help", menu=helpmenu)
 helpmenu.add_command(label="About...", command=output)
 
-cst.ReplayManager(root).pack(expand=True,fill=BOTH)
-
+rman = cst.ReplayManager(root)
+rman.pack(expand=True,fill=BOTH)
+root.protocol("WM_DELETE_WINDOW",on_exit)
 root.mainloop()
