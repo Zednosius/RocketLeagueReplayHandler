@@ -55,25 +55,22 @@ class ReplayEditFrame(tk.Frame):
         data = replay_parser.ReplayParser().parse(variables[2])
         self.headers = variables
         self.values = []
-        print data['header']
+
         #New replay
         if 'PlayerStats' in data['header'].keys():
             self.notif_text.set("There might be missing data, doublecheck")
             for ps in data['header']['PlayerStats']:
                 self.values.append((None,ps['Name'].decode('unicode-escape'),ps['Team'],ps['Goals'],ps['Saves'],ps['Shots'],ps['Assists'],ps['Score']))
-                print self.values[-1]
+
         else:
             self.notif_text.set("Old replay format, might be missing data")
-            for key in data['header']:
-                print key, "  : ", data['header'][key]
             names_goals = {}
             for d in data['header']['Goals']:
                 names_goals[d['PlayerName'].decode('unicode-escape')] = (1 + names_goals.get("PlayerName",[0])[0],d['PlayerTeam'])
             
-            print names_goals
+
             for k,v in names_goals.items():
                 self.values.append((None,k,int(names_goals[k][1]),names_goals[k][0]))
-        print self.values
         self.name.delete(0,"end")
         self.map.delete(0,"end")
         self.date.delete(0,"end")
@@ -86,9 +83,6 @@ class ReplayEditFrame(tk.Frame):
     def table_insert_values(self):
         """Inserts all values in self.values into the table"""
         self.table.delete(*self.table.get_children())
-        # for col in self.allcols:
-        #     self.table.column(col,anchor='center',minwidth=40,width=50)
-
 
         for values in self.values:
             self.table.insert("", "end",
@@ -97,8 +91,6 @@ class ReplayEditFrame(tk.Frame):
 
             if(self.table.column("#1","width") < self.mFont.measure(values[1])): #Adjust table column size if needed
                 self.table.column("#1",width=int(self.mFont.measure(values[1])*1.2))
-                #print "Adjusted columnsize"
-        
 
         self.table.tag_configure('red' , background='#FF7F00',font=self.mFont)
         self.table.tag_configure('blue', background='#82CFFD',font=self.mFont)
