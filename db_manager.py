@@ -38,10 +38,10 @@ class DB_Manager():
     def replay_exists(self,filename):
         with self.conn:
             return self.conn.execute("SELECT 1 from replays WHERE filename=?",(filename,)).fetchone()
-    def add_team(self,ID,teamNum,player_name,goals=None,saves=None,shots=None,assists=None,score=None):
+    def add_team(self,ID,player_name,teamNum,goals=None,saves=None,shots=None,assists=None,score=None):
         with self.conn:
-            self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?,?,?,?);",(ID,teamNum,player_name,goals,saves,shots,assists,score))
-            self.dprint("Inserted %s %s %s %s %s %s %s %s into teams",ID,teamNum,player_name,goals,saves,shots,assists,score)
+            self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",(ID,player_name,teamNum,goals,saves,shots,assists,score))
+            self.dprint("Inserted %s %s %s %s %s %s %s %s into teams",ID,player_name,teamNum,goals,saves,shots,assists,score)
 
     def add_tag(self,ID,tagname,timestamp):
         with self.conn:
