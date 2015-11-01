@@ -13,7 +13,7 @@ from Popups import *
 from ReplayInfoFrame import *
 from ReplayList import *
 from ReplayEditFrame import *
-
+import threading
 import rl_paths
 
 
@@ -153,13 +153,18 @@ class ReplayManager(tk.Frame):
             self.untracked_replays.insert("end","Replay "+str(time),(filename,time,fullpath))
                     
     def track_selected_file(self):
-        self.edit_frame.create_entry()
-        shutil.move(rl_paths.untracked_folder(self.edit_frame.headers[0]),rl_paths.tracked_folder(self.edit_frame.headers[0]))
-        print self.edit_frame.replay_entry
-        
-        self.untracked_replays.delete_selected()
-        self.tracked_replays.insert(0,self.edit_frame.replay_entry[2],self.edit_frame.replay_entry)
+        t1 = threading.Thread(target=self.edit_frame.create_entry)
+        t1.start()
+        while(t1.is_alive()):
+            self.update_idletasks()
 
+
+        if  self.edit_frame.replay_entry:
+            print self.edit_frame.replay_entry
+            shutil.move(rl_paths.untracked_folder(self.edit_frame.headers[0]),rl_paths.tracked_folder(self.edit_frame.headers[0]))
+            self.untracked_replays.delete_selected()
+            self.tracked_replays.insert(0,self.edit_frame.replay_entry[2],self.edit_frame.replay_entry)
+            self.edit_frame.clear()
 
         # self.tracked_replays.insert(0,self.edit_frame.values[2],self.edit_frame.values)
         # self.untracked_replays.delete()
