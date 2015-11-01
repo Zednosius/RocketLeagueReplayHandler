@@ -30,17 +30,18 @@ class DB_Manager():
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.debug = debug
 
-    def add_replay(self, filename, name, mapname, datetime):
+    def add_replay(self, filename, name, mapname, date_time):
         with self.conn:
-            self.conn.execute("INSERT INTO replays (filename,name,map,datetime) VALUES (?, ?, ?, ?);", (filename, name, mapname,datetime))
-            self.dprint("Inserted %s %s %s %s into replays ",filename,name,mapname,datetime)
+            self.dprint("Inserted %s %s %s %s into replays ",filename,name,mapname,date_time)
+            return self.conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?, ?, ?, ?);", (filename, name, mapname,date_time))
+            
     def replay_exists(self,filename):
         with self.conn:
             return self.conn.execute("SELECT 1 from replays WHERE filename=?",(filename,)).fetchone()
-    def add_team(self,ID,teamNum,player_name,goals=None,saves=None):
+    def add_team(self,ID,teamNum,player_name,goals=None,saves=None,shots=None,assists=None,score=None):
         with self.conn:
-            self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?);",(ID,teamNum,player_name,goals,saves))
-            self.dprint("Inserted %s %s %s %s %s into teams",ID,teamNum,player_name,goals,saves)
+            self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?,?,?,?);",(ID,teamNum,player_name,goals,saves,shots,assists,score))
+            self.dprint("Inserted %s %s %s %s %s %s %s %s into teams",ID,teamNum,player_name,goals,saves,shots,assists,score)
 
     def add_tag(self,ID,tagname,timestamp):
         with self.conn:
@@ -60,7 +61,7 @@ class DB_Manager():
     def update_note(self,ID,note):
         with self.conn:
             self.conn.execute("UPDATE notes SET note=? WHERE id=?",(note,ID))
-            self.dprint("Updated note %s",ID)
+            self.dprint("Updated note %s with text '%s'",ID,note)
 
     def add_group(self, group_name):
         with self.conn:
@@ -72,11 +73,15 @@ class DB_Manager():
             self.conn.execute("INSERT INTO group_members VALUES (?, ?);")
             self.dprint("Inserted %s %s into group_members",ID,gID)
 
-    def get_all(self, table):
+    def get_all(self, table,orderBy=None):
         """Get all the rows from specified table"""
         table = clean(table)
+        query = "SELECT * FROM "+table
+        if orderBy:
+            query += " ORDER BY "+orderBy
         with self.conn:
-            return self.conn.execute("SELECT * FROM "+table).fetchall()
+            self.dprint(query)
+            return self.conn.execute(query).fetchall()
 
     def get_all_where(self,table,**kw):
         """Get all the rows from specified table where all conditions are satisfied
