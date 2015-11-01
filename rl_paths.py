@@ -30,8 +30,8 @@ def make_dirs():
         if exception.errno != errno.EEXIST:
             raise
             
-def demo_folder():
-    demofolder = expanduser("~")+_default_path
+def demo_folder(f=None):
+    demofolder = expanduser("~")+_default_path + ("\\"+f+".replay" if f else "")
     return demofolder
 
 def untracked_folder(f=None):
