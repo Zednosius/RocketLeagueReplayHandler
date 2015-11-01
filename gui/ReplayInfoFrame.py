@@ -27,9 +27,6 @@ def treeview_sort_column(tv, col, reverse,cast):
 
 class ReplayInfoFrame(tk.Frame):
 
-    def motion(self,event):
-
-        return "break"
 
     def make_table(self):
         
@@ -43,7 +40,7 @@ class ReplayInfoFrame(tk.Frame):
         self.table['show'] = 'headings'
         #Set up headings
         self.table.heading("#1", text="Player",command=lambda:treeview_sort_column(self.table, "#1", False,str))
-        self.table.heading("#2", text="Team"  ,command=lambda:treeview_sort_column(self.table , "#2", False,int))
+        self.table.heading("#2", text="Team"  ,command=lambda:treeview_sort_column(self.table ,"#2", False,int))
         self.table.heading("#3", text="Goals" ,command=lambda:treeview_sort_column(self.table, "#3", False,int))
         self.table.heading("#4", text="Saves" ,command=lambda:treeview_sort_column(self.table, "#4", False,int))
         for col in self.allcols:
@@ -52,7 +49,7 @@ class ReplayInfoFrame(tk.Frame):
         #Remove the first column
         self.table.column("#0",width=0,minwidth=0)
         self.table_insert_values()
-       # print "wh",self.table.winfo_width(),self.table.winfo_height()
+      
 
     def table_insert_values(self):
         print self.values
@@ -62,14 +59,14 @@ class ReplayInfoFrame(tk.Frame):
         for values in self.values:
             self.table.insert("", "end",
              values=values[1:],
-             tags=("red" if int(values[2]) == 1 else "blue"))
+             tags=("orange" if int(values[2]) == 1 else "blue"))
 
             if(self.table.column("#1","width") < self.mFont.measure(values[1])): #Adjust table column size if needed
                 self.table.column("#1",width=int(self.mFont.measure(values[1])*1.2))
                 #print "Adjusted columnsize"
         
 
-        self.table.tag_configure('red' , background='#FF7F00',font=self.mFont)
+        self.table.tag_configure('orange' , background='#FF7F00',font=self.mFont)
         self.table.tag_configure('blue', background='#82CFFD',font=self.mFont)
 
     def populate_headers(self):
@@ -86,13 +83,11 @@ class ReplayInfoFrame(tk.Frame):
         
     def display_new(self, headers):
         self.save()
-
+        #Check if the headers are the same, if they are skip reloading the frame
         if len(self.headers)+2 == len(headers):
             same = headers[0] == self.id and headers[1] == self.filename
             for i in range(0,len(self.headers)):
-                #print "%s == %s = %s",self.headers[i] , headers[i+2],self.headers[i] == headers[i+2]
                 same = self.headers[i] == headers[i+2] and same
-            #print "same? : ",same
             if same: return
 
         self.use_headers(headers)
@@ -168,7 +163,6 @@ class ReplayInfoFrame(tk.Frame):
         for (_,tag,time) in self.tags:
             self.taglist.insert(tag,time)
         self.note_body.delete("1.0","end")
-        #print self.notes
         self.note_body.insert("end",self.notes[0][1] if self.notes else "")
 
 
@@ -200,7 +194,9 @@ class ReplayInfoFrame(tk.Frame):
 
         self.note_frame = tk.Frame(self)
         scrollbar = tk.Scrollbar(self.note_frame)
-        self.note_body= tk.Text(self.note_frame,height=4,width=30)
+        self.note_body= tk.Text(self.note_frame,height=4,width=30,maxundo=15,undo=15)
+        self.note_body.bind("<Control-A>", lambda e: self.note_select_all())
+        self.note_body.bind("<Control-a>", lambda e: self.note_select_all())
         scrollbar.config(command=self.note_body.yview)
 
         self.note_body.config(yscrollcommand=scrollbar.set)
@@ -212,7 +208,9 @@ class ReplayInfoFrame(tk.Frame):
             self.init()
         self.grid_rowconfigure(2,weight=1)
         self.grid_columnconfigure(0,weight=1)
-
+    def note_select_all(self):
+        self.note_body.tag_add("sel","1.0","end-1c")
+        return "break"
 
 class TagList(tk.Frame):
     def __init__(self,parent,**kw):
