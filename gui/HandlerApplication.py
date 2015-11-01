@@ -38,7 +38,7 @@ class ReplayManager(tk.Frame):
         tk.Label(frame,text="Replays").grid(row=0,column=0,sticky="NS")
         tk.Button(frame,text="Filter").grid(row=2,column=0,sticky="WE")
         tk.Label(frame,text="Staged").grid(row=0,column=2,sticky="NS")
-        tk.Button(frame,text="Unstage").grid(row=2,column=2,sticky="WE")
+        tk.Button(frame,text="Unstage",command=self.unstage_all).grid(row=2,column=2,sticky="WE")
         
         f  = tk.Frame(frame)
         f2 = tk.Frame(frame)
@@ -71,6 +71,8 @@ class ReplayManager(tk.Frame):
 
         self.tracked_replays.link(self.staged_list)
         self.staged_list.link(self.tracked_replays)
+        self.staged_list.set_insert_callback(self.copy_to_staging)
+        self.staged_list.set_delete_callback(self.delete_from_staging)
 
         frame.grid_columnconfigure(0,weight=1)
         frame.grid_columnconfigure(2,weight=1)
@@ -116,11 +118,10 @@ class ReplayManager(tk.Frame):
 
     def scan_and_fetch_untracked(self):
         p = rl_paths.demo_folder()
-        untracked = rl_paths.untracked_folder()
-        backup = rl_paths.backup_folder()
+        
+
         if self.untracked_replays.size() > 0:
             self.untracked_replays.delete(0,self.untracked_replays.size())
-
         print "Scanning for new replays"
         with DB_Manager(debug=True) as dmann:
             for f in os.listdir(p):
@@ -131,8 +132,8 @@ class ReplayManager(tk.Frame):
                 if os.path.isfile(fullpath) and not dmann.replay_exists(filename):
                     print "%s was not in database"%(filename)
                     try:
-                        shutil.copy2(fullpath,untracked+"\\"+f) #Copy to untracked folder
-                        shutil.copy2(fullpath,backup+"\\"+f) #Copy to backup folder
+                        shutil.copy2(rl_paths.demo_folder(filename),rl_paths.untracked_folder(filename)) #Copy to untracked folder
+                        shutil.copy2(rl_paths.demo_folder(filename),rl_paths.backup_folder(filename)) #Copy to backup folder
                         os.remove(fullpath) #Remove old copy
                         print "Moved %s to untracked"
                     except Exception, e:
@@ -143,6 +144,7 @@ class ReplayManager(tk.Frame):
                     var = dmann.get_all_where("replays",filename=("=",filename))[0]
                     self.staged_list.insert("end",var[2],var)
 
+        untracked = rl_paths.untracked_folder()
         l = os.listdir(untracked)
         l.sort(reverse=True,key=lambda x:os.path.getmtime(untracked+"\\"+x))
         print l
@@ -180,9 +182,25 @@ class ReplayManager(tk.Frame):
         print "Saved"
         self.info.save()
 
+    def copy_to_staging(self,variables):
+        if not os.path.isfile(rl_paths.demo_folder(variables[1])):
+            shutil.copy2(rl_paths.tracked_folder(variables[1]),rl_paths.demo_folder(variables[1]))
 
+        if not os.path.isfile(rl_paths.tracked_folder(variables[1])):
+            shutil.copy2(rl_paths.demo_folder(variables[1]),rl_paths.tracked_folder(variables[1]))
 
+        if not os.path.isfile(rl_paths.backup_folder(variables[1])):
+            shutil.copy2(rl_paths.demo_folder(variables[1]),rl_paths.backup_folder(variables[1]))
 
+    def delete_from_staging(self,variables_list):
+        for variables in variables_list:
+            try:
+                os.remove(rl_paths.demo_folder(variables[1]))
+            except WindowsError,e:
+                print e #If there were duplicates in the list somehow we get a can't find error
+
+    def unstage_all(self):
+        self.staged_list.delete(0,self.staged_list.size())
 
 
 
