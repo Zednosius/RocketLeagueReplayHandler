@@ -15,7 +15,7 @@ def initdb(loc="rocketleague.db"):
     conn.execute("PRAGMA foreign_keys = ON")
     with conn:      
         #ID; FILENAME; NAME; MAP;
-        conn.execute("CREATE TABLE replays (id INTEGER PRIMARY KEY, filename text UNIQUE, name text, map text, datetime text);")
+        conn.execute("CREATE TABLE replays (id INTEGER PRIMARY KEY, filename text UNIQUE, name text, map text, date_time text);")
         
         #ID(fk); TEAM; PLAYERCOUNT; GOALS;  (information about a team in a match)
         conn.execute("CREATE TABLE match_data (id integer REFERENCES replays ON DELETE CASCADE, team integer, playercount integer, goals integer, saves integer);")

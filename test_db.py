@@ -53,7 +53,7 @@ def randtags(ID):
 def randreplay():
     global stadiums,string
     return ("".join(rnd.sample(string,32)),"Big Tourny "+str(rnd.randint(0,100))+":"+str(rnd.randint(0,100)),
-                rnd.choice(stadiums),"2015-10-2"+str(rnd.randint(0,9))+":"+str(rnd.randint(0,2))+str(rnd.randint(0,9))+":"+str(rnd.randint(0,9))+str(rnd.randint(0,9))
+                rnd.choice(stadiums),"2015-10-2"+str(rnd.randint(0,9))+" "+str(rnd.randint(0,2))+str(rnd.randint(0,9))+":"+str(rnd.randint(0,9))+str(rnd.randint(0,9))
                 )
 def populate_test(loc=":memory:"):
     
@@ -65,7 +65,7 @@ def populate_test(loc=":memory:"):
         conn = sqlite3.connect(loc)
 
     conn.execute("PRAGMA foreign_keys = ON")
-    replay_insert = "INSERT INTO replays (filename,name,map,datetime) VALUES (?,?,?,?)"
+    replay_insert = "INSERT INTO replays (filename,name,map,date_time) VALUES (?,?,?,?)"
     team_insert = "INSERT INTO teams (id,playername,team,goals,saves) VALUES (?,?,?,?,?)"
     tag_insert = "INSERT INTO tags (id,tagname,timestamp) VALUES (?,?,?)"
     with conn:
@@ -76,30 +76,35 @@ def populate_test(loc=":memory:"):
             conn.executemany(tag_insert, randtags(i))
             conn.execute("INSERT INTO notes (id,note) VALUES (?,?)",(i,""))
 
-        c = conn.execute("INSERT INTO replays (filename,name,map,datetime) VALUES (?,?,?,?)",
-            ("297C8C31452A4D33E9EF5A92DCBF3A1A","Big Tourny 2:2","Urban Central","2015-10-10:21-49"))
+        c = conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?,?,?,?)",
+            ("297C8C31452A4D33E9EF5A92DCBF3A1A","Big Tourny 2:2","Urban Central","2015-10-10 21:49"))
         i = c.lastrowid
         conn.executemany(team_insert, randplayerlist(i))
+        conn.execute("INSERT INTO notes (id,note) VALUES (?,?)",(i,""))
+        
+        c = conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?,?,?,?)",
+            ("E52660E945D0F3EBFB671D9B82D8CC54","Big Tourny 2:3","DFH Stadium","2015-10-23 12:45"))
+        i = c.lastrowid
+        conn.executemany(team_insert, randplayerlist(i))
+        conn.execute("INSERT INTO notes (id,note) VALUES (?,?)",(i,""))
 
-        c = conn.execute("INSERT INTO replays (filename,name,map,datetime) VALUES (?,?,?,?)",
-            ("E52660E945D0F3EBFB671D9B82D8CC54","Big Tourny 2:3","DFH Stadium","2015-10-23:12:45"))
+        c = conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?,?,?,?)",
+            ("CF4544E24B3DB36C5186EE961C7BE2FF","Big Tourny 2:4","Utopia Stadium","2015-08-20 22:49"))
         i = c.lastrowid
         conn.executemany(team_insert, randplayerlist(i))
+        conn.execute("INSERT INTO notes (id,note) VALUES (?,?)",(i,""))
 
-        c = conn.execute("INSERT INTO replays (filename,name,map,datetime) VALUES (?,?,?,?)",
-            ("CF4544E24B3DB36C5186EE961C7BE2FF","Big Tourny 2:4","Utopia Stadium","2015-08-20:22:49"))
+        c = conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?,?,?,?)",
+            ("CE13707C4FBF32DFDC6D61821820458E","Big Tourny 2:5","Beckwith Park","2015-10-20 22:49"))
         i = c.lastrowid
         conn.executemany(team_insert, randplayerlist(i))
+        conn.execute("INSERT INTO notes (id,note) VALUES (?,?)",(i,""))
 
-        c = conn.execute("INSERT INTO replays (filename,name,map,datetime) VALUES (?,?,?,?)",
-            ("CE13707C4FBF32DFDC6D61821820458E","Big Tourny 2:5","Beckwith Park","2015-10-20:22:49"))
+        c = conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?,?,?,?)",
+            ("9051A33B48E8AE4A2537A9B7B4038BA9","Big Tourny 2:6","Utopia Stadium","2015-02-20 22:49"))
         i = c.lastrowid
         conn.executemany(team_insert, randplayerlist(i))
-
-        c = conn.execute("INSERT INTO replays (filename,name,map,datetime) VALUES (?,?,?,?)",
-            ("9051A33B48E8AE4A2537A9B7B4038BA9","Big Tourny 2:6","Utopia Stadium","2015-02-20:22:49"))
-        i = c.lastrowid
-        conn.executemany(team_insert, randplayerlist(i))
+        conn.execute("INSERT INTO notes (id,note) VALUES (?,?)",(i,""))
 
     mann = db_manager.DB_Manager()
     mann.conn.close()
