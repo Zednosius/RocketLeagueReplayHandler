@@ -10,26 +10,27 @@ from db_manager import *
 
 import replay_parser
 
+
 class ReplayEditFrame(tk.Frame):
     def __init__(self,parent,**kw):
         self.mFont = tkFont.Font(family="Helvetica",size=14)
         tk.Frame.__init__(self,parent,kw)
         self.notif_text = tk.StringVar()
         self.notif = tk.Label(self,textvariable=self.notif_text,fg="#DD0000")
-        self.notif.grid(row=0,column=2,sticky="we")
+        self.notif.grid(row=0,column=1,sticky="we")
         label_row = 1
         entry_row = 2
 
-        tk.Label(self,text="Name").grid(row=label_row,column=1)
-        tk.Label(self,text="Map name").grid(row=label_row,column=2)
-        tk.Label(self,text="Date").grid(row=label_row,column=3)
+        tk.Label(self,text="Name").grid(row=label_row,column=0)
+        tk.Label(self,text="Map name").grid(row=label_row,column=1)
+        tk.Label(self,text="Date").grid(row=label_row,column=2)
         
         self.name = tk.Entry(self)
-        self.name.grid(row=entry_row,column=1,sticky="we")
+        self.name.grid(row=entry_row,column=0,sticky="we")
         self.map = tk.Entry(self)
-        self.map.grid(row=entry_row,column=2,sticky="we")
+        self.map.grid(row=entry_row,column=1,sticky="we")
         self.date= tk.Entry(self)
-        self.date.grid(row=entry_row,column=3,sticky="we")
+        self.date.grid(row=entry_row,column=2,sticky="we")
 
         self.table = ttk.Treeview(self)
 
@@ -49,7 +50,12 @@ class ReplayEditFrame(tk.Frame):
             self.table.column(col,anchor='center',minwidth=75,width=75)
         self.table.column('#1',anchor='center',minwidth=100,width=100)
 
-        self.table.grid(row=entry_row+1,column=0,columnspan=4)
+        self.table.grid(row=entry_row+1,column=0,columnspan=4,sticky="NEWS")
+        
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_columnconfigure(1,weight=1)
+        self.grid_columnconfigure(2,weight=1)
+        self.grid_columnconfigure(3,weight=1)
 
     def display_new(self,variables):
         data = replay_parser.ReplayParser().parse(variables[2])
