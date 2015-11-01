@@ -16,8 +16,7 @@ from ReplayEditFrame import *
 from os.path import expanduser
 import errno
 
-def tag_popup(taglist,infowidget):
-    TagPopup(taglist=taglist,infowidget=infowidget)
+
 
 def make_dirs():
     try:
@@ -103,13 +102,12 @@ class ReplayManager(tk.Frame):
 
 
         self.edit_frame = ReplayEditFrame(frame)
-        self.edit_frame.grid(row=1,column=1,sticky="NSE")
+        self.edit_frame.grid(row=1,column=1,sticky="NWSE")
         tk.Button(frame,text="rescan",command=self.scan_and_fetch_untracked).grid(row=2,column=0,sticky="WE")
 
-
+        frame.grid_rowconfigure(1,weight=1)
         frame.grid_columnconfigure(0,weight=1)
-        frame.grid_columnconfigure(1,weight=0)
-        frame.grid_columnconfigure(2,weight=1)
+        frame.grid_columnconfigure(1,weight=1)
 
 
     def fetch_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
@@ -126,7 +124,7 @@ class ReplayManager(tk.Frame):
             self.untracked_replays.delete(0,self.untracked_replays.size())
 
         print "Scanning for new replays"
-        with DB_Manager() as dmann:
+        with DB_Manager(debug=True) as dmann:
             for f in os.listdir(p):
                 filename = os.path.splitext(f)[0]
                 fullpath = p+"\\"+f
@@ -141,8 +139,10 @@ class ReplayManager(tk.Frame):
                     except Exception, e:
                         print "Error during file handling"
                         print e
-                else:
+                elif os.path.isfile(fullpath):
                     print "%s existed in database"%(f)
+                    var = dmann.get_all_where("replays",filename=("=",filename))[0]
+                    self.staged_list.insert("end",var[2],var)
 
         l = os.listdir(untracked)
         l.sort(reverse=True,key=lambda x:os.path.getctime(untracked+"\\"+x))
@@ -160,7 +160,9 @@ class ReplayManager(tk.Frame):
         #print "Displaying new info",variables
         self.info.display_new(list(variables))
 
-        
+    def save(self):
+        print "Saved"
+        self.info.save()
 
 
 
