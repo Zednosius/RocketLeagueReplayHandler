@@ -82,11 +82,16 @@ class DB_Manager():
         """Get all the rows from specified table where all conditions are satisfied
             conditions are passed as cond1=(cmp,var1),cond2=(cmp,var2)
         """
+
         table = clean(table)
         for k in kw.keys():
-            if(type(kw[k]) == str):
-                kw[k] = clean(kw[k])
+            if len(kw[k]) != 2:
+                print "Is keyword a tuple?"
 
+            if(type(kw[k][1]) == str):
+                kw[k] = (kw[k][0],clean(kw[k][1]))
+
+        self.dprint("%s",kw)
         where_clause = " AND ".join([" %s %s :%s" % (key,kw[key][0],key) for key in kw.keys()])
         kw = {k:v[1] for (k,v) in kw.items()}
         self.dprint("SELECT * FROM "+table+" WHERE "+where_clause)
