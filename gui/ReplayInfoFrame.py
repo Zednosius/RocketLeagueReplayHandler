@@ -5,9 +5,12 @@
 import Tkinter as tk
 import ttk
 import tkFont
+from Popups import *
 from db_manager import *
 
 
+def tag_popup(taglist,infowidget):
+    TagPopup(taglist=taglist,infowidget=infowidget)
 
 #http://stackoverflow.com/questions/1966929/tk-treeview-column-sort
 def treeview_sort_column(tv, col, reverse,cast):
@@ -43,8 +46,9 @@ class ReplayInfoFrame(tk.Frame):
         self.table.heading("#2", text="Team"  ,command=lambda:treeview_sort_column(self.table , "#2", False,int))
         self.table.heading("#3", text="Goals" ,command=lambda:treeview_sort_column(self.table, "#3", False,int))
         self.table.heading("#4", text="Saves" ,command=lambda:treeview_sort_column(self.table, "#4", False,int))
-        
-        
+        for col in self.allcols:
+            self.table.column(col,anchor='center',minwidth=75,width=75,stretch=True)
+        self.table.column("#1",anchor='center',minwidth=100,width=100,stretch=True)
         #Remove the first column
         self.table.column("#0",width=0,minwidth=0)
         self.table_insert_values()
@@ -54,10 +58,7 @@ class ReplayInfoFrame(tk.Frame):
         print self.values
         """Inserts all values in self.values into the table"""
         self.table.delete(*self.table.get_children())
-        for col in self.allcols:
-            self.table.column(col,anchor='center',minwidth=75,width=75,stretch=True)
-
-
+    
         for values in self.values:
             self.table.insert("", "end",
              values=values[1:],
@@ -84,11 +85,7 @@ class ReplayInfoFrame(tk.Frame):
                    
         
     def display_new(self, headers):
-        #Save old notes
-        if len(self.headers) != 0:
-            with DB_Manager() as dmann:
-                dmann.update_note(self.id,self.note_body.get("1.0","end-1c"))
-                self.cached[self.id]["notes"] = [(self.id,self.note_body.get("1.0","end-1c"),)]
+        self.save()
 
         if len(self.headers)+2 == len(headers):
             same = headers[0] == self.id and headers[1] == self.filename
@@ -100,6 +97,14 @@ class ReplayInfoFrame(tk.Frame):
 
         self.use_headers(headers)
         self.init()
+
+    def save(self):
+        #Save old notes
+        if len(self.headers) != 0:
+            with DB_Manager() as dmann:
+                dmann.update_note(self.id,self.note_body.get("1.0","end-1c"))
+                self.cached[self.id]["notes"] = [(self.id,self.note_body.get("1.0","end-1c"),)]
+
 
     def use_headers(self,headers):
 
