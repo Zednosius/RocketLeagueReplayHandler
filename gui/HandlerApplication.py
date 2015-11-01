@@ -98,12 +98,14 @@ class ReplayManager(tk.Frame):
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.untracked_replays.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
         f.grid(row=1,column=0,sticky="NSWE")
-        
+
         self.scan_and_fetch_untracked()
 
 
         self.edit_frame = ReplayEditFrame(frame)
         self.edit_frame.grid(row=1,column=1,sticky="NSE")
+        tk.Button(frame,text="rescan",command=self.scan_and_fetch_untracked).grid(row=2,column=0,sticky="WE")
+
 
         frame.grid_columnconfigure(0,weight=1)
         frame.grid_columnconfigure(1,weight=0)
@@ -120,6 +122,9 @@ class ReplayManager(tk.Frame):
     def scan_and_fetch_untracked(self):
         p = expanduser("~")+self._default_path
         untracked = p+"\\untracked"
+        if self.untracked_replays.size() > 0:
+            self.untracked_replays.delete(0,self.untracked_replays.size())
+
         print "Scanning for new replays"
         with DB_Manager() as dmann:
             for f in os.listdir(p):
@@ -139,8 +144,9 @@ class ReplayManager(tk.Frame):
                 else:
                     print "%s existed in database"%(f)
 
-            
-        for f in os.listdir(untracked):
+        l = os.listdir(untracked)
+        l.sort(reverse=True,key=lambda x:os.path.getctime(untracked+"\\"+x))
+        for f in l:
             filename = os.path.splitext(f)[0]
             fullpath = untracked+"\\"+f
             time = datetime.datetime.fromtimestamp(os.path.getmtime(fullpath)).strftime("%Y-%m-%d-%H:%M")
