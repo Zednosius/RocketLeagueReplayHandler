@@ -29,8 +29,6 @@ class ReplayInfoFrame(tk.Frame):
 
 
     def make_table(self):
-        
-        self.table.bind_class(self.table,"<B1-Motion>",self.motion)
 
 
         self.allcols = ["#1","#2","#3","#4"]
