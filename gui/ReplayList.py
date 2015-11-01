@@ -50,11 +50,11 @@ class ReplayList(tk.Listbox):
             self.selected_item = 0
         return "break"
 
-    def notify_parent_displayinfo(self, event,useSelection=False):
+    def notify_parent_displayinfo(self, event, useSelection=False):
         if not self.curselection():return "break"
         print "Notify_Parent_DisplayInfo"
         resolved = False 
-        parent = event.widget.winfo_parent()
+        parent = self.winfo_parent()
         if useSelection:
             self.selected_item = int(self.curselection()[0])
         print "Showing: ",self.selected_item
@@ -111,6 +111,7 @@ class ReplayList(tk.Listbox):
         # print self.variables
     def get_variables(self,index):
         return self.variables[index]
+
     def delete(self,start,end=None):
         tk.Listbox.delete(self,start,end)
         print "Var amt: ",len(self.variables)
@@ -121,6 +122,12 @@ class ReplayList(tk.Listbox):
                 print "popped ",self.variables.pop(i-1)
             print "Ran delete %s to %s "%(start,end)
         print self.variables
+
+    def delete_selected(self):
+        tk.Listbox.delete(self,self.selected_item)
+        self.variables.pop(self.selected_item)
+        self.selection_set(self.selected_item)
+        self.notify_parent_displayinfo(None)
 
     def enter_press(self,event):
         if not hasattr(self,'selected_item'): return
