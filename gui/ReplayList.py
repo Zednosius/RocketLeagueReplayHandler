@@ -53,12 +53,12 @@ class ReplayList(tk.Listbox):
 
     def notify_parent_displayinfo(self, event, useSelection=False):
         if not self.curselection():return "break"
-        print "Notify_Parent_DisplayInfo"
+        # print "Notify_Parent_DisplayInfo"
         resolved = False 
         parent = self.winfo_parent()
         if useSelection:
             self.selected_item = int(self.curselection()[0])
-        print "Showing: ",self.selected_item
+        # print "Showing: ",self.selected_item
         while not resolved and self.size() > 0:
             if parent =="":
                 return "break"
