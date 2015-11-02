@@ -13,7 +13,7 @@ import re
 import shutil
 import rl_paths
 import Popups
-
+import names
 class ReplayEditFrame(tk.Frame):
     def __init__(self,parent,**kw):
         self.mFont = tkFont.Font(family="Helvetica",size=14)
@@ -67,7 +67,8 @@ class ReplayEditFrame(tk.Frame):
         data = replay_parser.ReplayParser().parse(variables[2])
         self.headers = variables
         self.values = []
-        # print self.headers
+        print "Displaying new"
+        print self.headers
         #New replay
         if 'PlayerStats' in data['header'].keys():
             self.notif_text.set("There might be missing data, doublecheck")
@@ -83,11 +84,11 @@ class ReplayEditFrame(tk.Frame):
 
             for k,v in names_goals.items():
                 self.values.append((None,k,int(names_goals[k][1]),names_goals[k][0]))
-        
+        print "Clearing self"
         self.clear()
-
+        print "Inserting new "
         self.name.insert(0,"Replay "+self.headers[1])
-        self.mapname.insert(0,data['header']['MapName'])
+        self.mapname.insert(0,names.stadiums.get(data['header']['MapName'].lower(),data['header']['MapName']))
         self.date.insert(0,re.sub(":(\d\d)-"," \\1:",data['header']['Date']))
         self.table_insert_values()
         #self.progress_bar.values=0
@@ -121,19 +122,13 @@ class ReplayEditFrame(tk.Frame):
         steps = float(2+len(self.values))
         print "Creating entry"
         try:
-            with DB_Manager() as dmann:
+            with DB_Manager(debug=True) as dmann:
                 c = dmann.add_replay(filename=self.headers[0],name=replay_name, mapname=map_name, date_time=date)
-                #self.progress_bar.step(100/steps)
                 idx = c.lastrowid
                 self.replay_entry = (idx,self.headers[0],replay_name,map_name,date)
-                #print "replay entry: ",self.replay_entry
-                for values in self.values:
-                    print idx,values
-                    
-                    dmann.add_team(idx,*(values[1:]))
-                    #self.progress_bar.step(100/steps)
+                dmann.add_many_team([(idx,)+values[1:] for values in self.values])
+                
                 dmann.add_note(idx,"")
-                #self.progress_bar.step(100/steps)
             self.notif_text.set("Replay added")
         except sqlite3.IntegrityError, e:
             self.notif_text.set("ERROR: COULD NOT CREATE ENTRY\n"+str(e))
