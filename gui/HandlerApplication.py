@@ -15,7 +15,7 @@ from ReplayList import *
 from ReplayEditFrame import *
 import threading
 import rl_paths
-
+import replay_parser
 
 
 class ReplayManager(tk.Frame):
@@ -108,7 +108,7 @@ class ReplayManager(tk.Frame):
     def fetch_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
         with DB_Manager() as mann:
             if replayfilters  or tagfilters or playerfilters or groupfilters:
-                print "dicts: ",replayfilters,tagfilters,playerfilters,groupfilters
+                #print "dicts: ",replayfilters,tagfilters,playerfilters,groupfilters
                 replays = mann.filter_replays(replayfilters,tagfilters,playerfilters,groupfilters)
             else:
                 replays = mann.get_all("replays","date_time desc")
@@ -128,41 +128,50 @@ class ReplayManager(tk.Frame):
                 filename = os.path.splitext(f)[0]
                 fullpath = p+"\\"+f
                 stat = os.stat(fullpath)
-                print "On file: "+f
+                #print "On file: "+f
                 if os.path.isfile(fullpath) and not dmann.replay_exists(filename):
-                    print "%s was not in database"%(filename)
+                    #print "%s was not in database"%(filename)
                     try:
                         shutil.copy2(rl_paths.demo_folder(filename),rl_paths.untracked_folder(filename)) #Copy to untracked folder
                         shutil.copy2(rl_paths.demo_folder(filename),rl_paths.backup_folder(filename)) #Copy to backup folder
                         os.remove(fullpath) #Remove old copy
-                        print "Moved %s to untracked"
+                        #print "Moved %s to untracked"
                     except Exception, e:
                         print "Error during file handling"
                         print e
                 elif os.path.isfile(fullpath):
-                    print "%s existed in database"%(f)
+                    #print "%s existed in database"%(f)
                     var = dmann.get_all_where("replays",filename=("=",filename))[0]
                     self.staged_list.insert("end",var[2],var)
 
         untracked = rl_paths.untracked_folder()
         l = os.listdir(untracked)
-        l.sort(reverse=True,key=lambda x:os.path.getmtime(untracked+"\\"+x))
-        print l
+        tdict = {}
+        for f in l:
+            data = replay_parser.ReplayParser().parse(rl_paths.untracked_folder(os.path.splitext(f)[0]))
+            time = re.sub(":(\d\d)-"," \\1:",data['header']['Date'])
+            tdict[f]=time
+
+
+        l.sort(reverse=True,key=lambda x:tdict[x])
+        #print l
         for f in l:
             filename = os.path.splitext(f)[0]
             fullpath = untracked+"\\"+f
-            time = datetime.datetime.fromtimestamp(os.path.getmtime(fullpath)).strftime("%Y-%m-%d %H:%M")
-            self.untracked_replays.insert("end","Replay "+str(time),(filename,time,fullpath))
+            #data = replay_parser.ReplayParser().parse(fullpath)
+            #time = re.sub(":(\d\d)-"," \\1:",data['header']['Date'])#datetime.datetime.fromtimestamp(os.path.getmtime(fullpath)).strftime("%Y-%m-%d %H:%M")
+            self.untracked_replays.insert("end","Replay "+str(tdict[f]),(filename,tdict[f],fullpath))
                     
     def track_selected_file(self):
-        t1 = threading.Thread(target=self.edit_frame.create_entry)
-        t1.start()
-        while(t1.is_alive()):
-            self.update_idletasks()
+        # t1 = threading.Thread(target=self.edit_frame.create_entry)
+        # t1.start()
+        self.edit_frame.create_entry()
+        # while(t1.is_alive()):
+            # self.update_idletasks()
 
 
         if  self.edit_frame.replay_entry:
-            print self.edit_frame.replay_entry
+            #print self.edit_frame.replay_entry
             shutil.move(rl_paths.untracked_folder(self.edit_frame.headers[0]),rl_paths.tracked_folder(self.edit_frame.headers[0]))
             self.untracked_replays.delete_selected()
             self.tracked_replays.insert(0,self.edit_frame.replay_entry[2],self.edit_frame.replay_entry)
@@ -175,11 +184,11 @@ class ReplayManager(tk.Frame):
         self.edit_frame.display_new(list(variables))
 
     def replay_displayinfo(self,variables):
-        #print "Displaying new info",variables
+        ##print "Displaying new info",variables
         self.info.display_new(list(variables))
 
     def save(self):
-        print "Saved"
+        #print "Saved"
         self.info.save()
 
     def copy_to_staging(self,variables):

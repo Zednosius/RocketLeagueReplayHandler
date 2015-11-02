@@ -50,7 +50,7 @@ class ReplayInfoFrame(tk.Frame):
       
 
     def table_insert_values(self):
-        print self.values
+        # print self.values
         """Inserts all values in self.values into the table"""
         self.table.delete(*self.table.get_children())
     

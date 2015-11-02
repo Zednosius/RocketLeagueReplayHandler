@@ -21,8 +21,8 @@ class ReplayEditFrame(tk.Frame):
         self.notif_text = tk.StringVar()
         self.notif = tk.Label(self,textvariable=self.notif_text,fg="#DD0000")
         self.notif.grid(row=0,column=1,sticky="we")
-        self.progress_bar = ttk.Progressbar(self)
-        self.progress_bar.grid(row=0,column=2,sticky="we")
+        #self.progress_bar = ttk.Progressbar(self)
+        #self.progress_bar.grid(row=0,column=2,sticky="we")
         label_row = 1
         entry_row = 2
 
@@ -67,7 +67,7 @@ class ReplayEditFrame(tk.Frame):
         data = replay_parser.ReplayParser().parse(variables[2])
         self.headers = variables
         self.values = []
-        print self.headers
+        # print self.headers
         #New replay
         if 'PlayerStats' in data['header'].keys():
             self.notif_text.set("There might be missing data, doublecheck")
@@ -88,9 +88,9 @@ class ReplayEditFrame(tk.Frame):
 
         self.name.insert(0,"Replay "+self.headers[1])
         self.mapname.insert(0,data['header']['MapName'])
-        self.date.insert(0,self.headers[1])
+        self.date.insert(0,re.sub(":(\d\d)-"," \\1:",data['header']['Date']))
         self.table_insert_values()
-        self.progress_bar.values=0
+        #self.progress_bar.values=0
 
     def table_insert_values(self):
         """Inserts all values in self.values into the table"""
@@ -123,17 +123,17 @@ class ReplayEditFrame(tk.Frame):
         try:
             with DB_Manager() as dmann:
                 c = dmann.add_replay(filename=self.headers[0],name=replay_name, mapname=map_name, date_time=date)
-                self.progress_bar.step(100/steps)
+                #self.progress_bar.step(100/steps)
                 idx = c.lastrowid
                 self.replay_entry = (idx,self.headers[0],replay_name,map_name,date)
-                print "replay entry: ",self.replay_entry
+                #print "replay entry: ",self.replay_entry
                 for values in self.values:
                     print idx,values
                     
                     dmann.add_team(idx,*(values[1:]))
-                    self.progress_bar.step(100/steps)
+                    #self.progress_bar.step(100/steps)
                 dmann.add_note(idx,"")
-                self.progress_bar.step(100/steps)
+                #self.progress_bar.step(100/steps)
             self.notif_text.set("Replay added")
         except sqlite3.IntegrityError, e:
             self.notif_text.set("ERROR: COULD NOT CREATE ENTRY\n"+str(e))
@@ -151,8 +151,8 @@ class ReplayEditFrame(tk.Frame):
         return True
 
     def edit_row(self,event):
-        print event
-        print event.widget
+        # print event
+        # print event.widget
         selection = self.table.selection()[0]
         row_index = self.table.index(selection)
         vals = []
@@ -176,4 +176,4 @@ class ReplayEditFrame(tk.Frame):
             self.values[idx] = vals
         else:
             self.values.append(vals) 
-        print vals
+        # print vals
