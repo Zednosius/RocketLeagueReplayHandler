@@ -36,7 +36,7 @@ class ReplayManager(tk.Frame):
     def start_browse_mode(self,frame):
         print "starting browse mode"
         tk.Label(frame,text="Replays").grid(row=0,column=0,sticky="NS")
-        tk.Button(frame,text="Filter").grid(row=2,column=0,sticky="WE")
+        tk.Button(frame,text="Filter", command=self.filter_replays).grid(row=2,column=0,sticky="WE")
         tk.Label(frame,text="Staged").grid(row=0,column=2,sticky="NS")
         tk.Button(frame,text="Unstage",command=self.unstage_all).grid(row=2,column=2,sticky="WE")
         
@@ -212,7 +212,8 @@ class ReplayManager(tk.Frame):
         if self.staged_list.size() == 0: return
         self.staged_list.delete(0,self.staged_list.size())
 
-
+    def filter_replays(self):
+        pass
 
         
 

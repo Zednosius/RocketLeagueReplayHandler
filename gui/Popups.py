@@ -105,3 +105,8 @@ class FilterPopup(tk.Toplevel):
 
     def __init__(self,parent,**kw):
         tk.Toplevel.__init__(parent,**kw)
+        self.entries = []
+        for (idx,txt) in enumerate(["Player","Map","Tag","Goals","Saves","Date"]):
+            tk.Label(self,text=txt).grid(row=idx,column=0)
+            self.entries.append(tk.Entry(self))
+            self.entries[idx].grid(row=idx,column=1)
