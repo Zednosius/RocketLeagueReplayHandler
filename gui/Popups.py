@@ -103,10 +103,15 @@ class FilterPopup(tk.Toplevel):
 
     filter_options = ["replay name","map name","player name",]
 
-    def __init__(self,parent,**kw):
-        tk.Toplevel.__init__(parent,**kw)
+    def __init__(self,parent=None,**kw):
+        wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
+        tk.Toplevel.__init__(self,parent,**kw)
+
         self.entries = []
         for (idx,txt) in enumerate(["Player","Map","Tag","Goals","Saves","Date"]):
             tk.Label(self,text=txt).grid(row=idx,column=0)
             self.entries.append(tk.Entry(self))
-            self.entries[idx].grid(row=idx,column=1)
+            self.entries[idx].grid(row=idx,column=1,sticky="we")
+        tk.Button(self,text="Apply").grid(row=idx+1,column=0,columnspan=2,sticky="we")
+        self.grid_columnconfigure(1,weight=1)
+        self.geometry("+%d+%d" % (wroot_x+50, wroot_y+50))

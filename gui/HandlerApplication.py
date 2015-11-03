@@ -213,7 +213,8 @@ class ReplayManager(tk.Frame):
         self.staged_list.delete(0,self.staged_list.size())
 
     def filter_replays(self):
-        pass
+        pop = FilterPopup( winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()) )
+        pop.title("Filter")
 
         
 
