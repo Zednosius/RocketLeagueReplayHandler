@@ -112,6 +112,8 @@ class DB_Manager():
         if replayfilters:
             replay_where = self.get_where_clause("R",replayfilters)
             query += "where " + replay_where
+        else:
+            query += "where 1 "
 
         if tagfilters:
             tag_where = self.get_where_clause("T",tagfilters)
