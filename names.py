@@ -2,7 +2,7 @@ stadiums = {
     "stadium_p":"DFH Stadium",
     
     "park_p":"Beckwith Park",
-    "park_night_p":"Beckwith Park (midnight",
+    "park_night_p":"Beckwith Park (midnight)",
     "park_rainy_p":"Beckwith Park (stormy)",
 
     "eurostadium_p":"Mannfield",
