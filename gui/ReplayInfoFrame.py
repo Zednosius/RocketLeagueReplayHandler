@@ -131,8 +131,8 @@ class ReplayInfoFrame(tk.Frame):
 
         with DB_Manager() as mann:
             self.values = mann.get_all_where("teams",id=("=",self.id))
-            self.tags = mann.get_all_where("tags",id=("=",self.id))
-            self.notes = mann.get_all_where("notes",id=("=",self.id))
+            self.tags   = mann.get_all_where("tags",id=("=",self.id))
+            self.notes  = mann.get_all_where("notes",id=("=",self.id))
 
             self.cached[self.id]["values"] = list(self.values)
             self.cached[self.id]["tags"] = list(self.tags)

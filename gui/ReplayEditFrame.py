@@ -26,7 +26,7 @@ class ReplayEditFrame(tk.Frame):
         self.mapname    = tk.Entry(self)       
         self.date       = tk.Entry(self)
         self.table      = ttk.Treeview(self)
-        
+
         self.add_empty_row_button = tk.Button(self,text="Add row",command=self.add_empty_row)
         namelabel = tk.Label(self,text="Name")
         maplabel  = tk.Label(self,text="Map name")
@@ -142,6 +142,7 @@ class ReplayEditFrame(tk.Frame):
 
         replay_name = self.name.get() 
         map_name    = self.mapname.get()
+        date        = self.date.get()
         print "Creating entry"
         try:
             with DB_Manager(debug=True) as dmann:
@@ -186,7 +187,7 @@ class ReplayEditFrame(tk.Frame):
         """Inserts an empty row at the end of the table.
         """
         self.table.insert("", "end",
-             values= ("None",)*( len(self.values[0])-1 if self.values[0] else 7),
+             values= ("None",)*len(allcols),
              tags=("new_row"))
 
     def replace_row(self,row_selection,vals):
