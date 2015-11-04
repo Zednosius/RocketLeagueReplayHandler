@@ -13,6 +13,7 @@ from Popups import *
 from ReplayInfoFrame import *
 from ReplayList import *
 from ReplayEditFrame import *
+import time
 import threading
 import rl_paths
 import replay_parser
@@ -123,18 +124,28 @@ class ReplayManager(tk.Frame):
 
         if self.untracked_replays.size() > 0:
             self.untracked_replays.delete(0,self.untracked_replays.size())
+        if self.staged_list.size() > 0:
+            self.staged_list.delete(0,self.staged_list.size())
+
         print "Scanning for new replays"
         with DB_Manager(debug=True) as dmann:
-            for f in os.listdir(p):
-                filename = os.path.splitext(f)[0]
-                fullpath = p+"\\"+f
-                stat = os.stat(fullpath)
+            l = [rl_paths.demo_folder( os.path.splitext(x)[0]) 
+                for x in os.listdir(p) 
+                if os.path.isfile(rl_paths.demo_folder(os.path.splitext(x)[0]))]
+
+            
+            l.sort(reverse=True,key=lambda x: os.path.getmtime(x))
+            print l
+            for f in l:
+                filename = os.path.splitext(os.path.basename(f))[0]
+                fullpath = f
                 #print "On file: "+f
                 if os.path.isfile(fullpath) and not dmann.replay_exists(filename):
                     #print "%s was not in database"%(filename)
                     try:
                         shutil.copy2(rl_paths.demo_folder(filename),rl_paths.untracked_folder(filename)) #Copy to untracked folder
-                        shutil.copy2(rl_paths.demo_folder(filename),rl_paths.backup_folder(filename)) #Copy to backup folder
+                        if not os.path.isfile(rl_paths.backup_folder(filename)):
+                            shutil.copy2(rl_paths.demo_folder(filename),rl_paths.backup_folder(filename)) #Copy to backup folder
                         os.remove(fullpath) #Remove old copy
                         #print "Moved %s to untracked"
                     except Exception, e:
@@ -143,15 +154,33 @@ class ReplayManager(tk.Frame):
                 elif os.path.isfile(fullpath):
                     #print "%s existed in database"%(f)
                     var = dmann.get_all_where("replays",filename=("=",filename))[0]
-                    self.staged_list.insert("end",var[2],var)
+                    if self.staged_list.size() == 0: 
+                        self.staged_list.insert("end",var[2],var)
+                    else:
+                        for i,v in enumerate(self.staged_list.variables):
+                            print i,v
+                            if v[4] < var[4]:
+                                self.staged_list.insert(i,var[2],var)
+                                break
+                            elif i+1 == self.staged_list.size():
+                                self.staged_list.insert("end",var[2],var)
+                                break
 
         untracked = rl_paths.untracked_folder()
         l = os.listdir(untracked)
         tdict = {}
         for f in l:
-            data = replay_parser.ReplayParser().parse(rl_paths.untracked_folder(os.path.splitext(f)[0]))
-            time = re.sub(":(\d\d)-"," \\1:",data['header']['Date'])
-            tdict[f]=time
+            path = rl_paths.untracked_folder(os.path.splitext(f)[0])
+            data = replay_parser.ReplayParser().parse(path)
+            #Correct the file modified time if it is discrepant with the internal date from the replay file.
+            #A discrepancy most probably means the replay was downloaded from somewhere.
+            #Correcting the time makes it easier to find it in the replay browser ingame, because it will line up with its staged counterpart
+            repTime = time.mktime(datetime.datetime(*map(int,data['header']['Date'].replace(":","-").split("-"))).timetuple())
+            if repTime != os.path.getmtime(path):
+                os.utime(path,(repTime,repTime))
+
+            time_ = re.sub(":(\d\d)-"," \\1:",data['header']['Date'])
+            tdict[f]=time_
 
 
         l.sort(reverse=True,key=lambda x:tdict[x])
