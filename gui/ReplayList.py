@@ -123,19 +123,17 @@ class ReplayList(tk.Listbox):
         tk.Listbox.delete(self,start,end)
         if self.delete_callback:
             self.delete_callback(self.variables[start:end if end != None else start+1])
-        print "Var amt: ",len(self.variables)
+
         if not end:
-            print "Deleting: ",self.variables.pop(start)
+            self.variables.pop(start)
         else:
             for i in range(end,start,-1):
-                print "popped ",self.variables.pop(i-1)
-            print "Ran delete %s to %s "%(start,end)
-        print self.variables
+                self.variables.pop(i-1)
 
     def delete_selected(self):
         tk.Listbox.delete(self,self.selected_item)
         self.variables.pop(self.selected_item)
-
+        print "Deleted", self.selected_item
         if self.selected_item >= self.size():
             self.selected_item -= 1
 
