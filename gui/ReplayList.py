@@ -81,9 +81,14 @@ class ReplayList(tk.Listbox):
             items.append( self.get(d) )
             variables.append( self.variables[int(d)] )
         other = self.otherDropList
-
+        print variables
         while len(items) > 0:
-            other.insert("end",items.pop(),variables.pop())
+            for i,v in enumerate(other.variables):
+                if v[4] < variables[0][4]:
+                    other.insert(i,items.pop(),variables.pop())
+                    break
+                elif i+1 == len(other.variables):
+                    other.insert("end",items.pop(),variables.pop())
 
     def show_clicked(self,event):
         self.selected_item = self.nearest(event.y)
