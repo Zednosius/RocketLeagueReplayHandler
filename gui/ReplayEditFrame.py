@@ -91,7 +91,6 @@ class ReplayEditFrame(tk.Frame):
         self.headers = variables
         self.values = []
         print "Displaying new"
-        print self.headers
         #New replay
         if 'PlayerStats' in data['header'].keys():
             self.notif_text.set("There might be missing data, doublecheck")

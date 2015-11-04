@@ -155,33 +155,26 @@ class ReplayManager(tk.Frame):
 
 
         l.sort(reverse=True,key=lambda x:tdict[x])
-        #print l
+        
         for f in l:
             filename = os.path.splitext(f)[0]
             fullpath = untracked+"\\"+f
-            #data = replay_parser.ReplayParser().parse(fullpath)
-            #time = re.sub(":(\d\d)-"," \\1:",data['header']['Date'])#datetime.datetime.fromtimestamp(os.path.getmtime(fullpath)).strftime("%Y-%m-%d %H:%M")
             self.untracked_replays.insert("end","Replay "+str(tdict[f]),(filename,tdict[f],fullpath))
                     
     def track_selected_file(self):
-        # t1 = threading.Thread(target=self.edit_frame.create_entry)
-        # t1.start()
         if len(self.untracked_replays.curselection()) == 1:
             self.edit_frame.create_entry()
 
         if  self.edit_frame.replay_entry:
-            #print self.edit_frame.replay_entry
+
             shutil.move(rl_paths.untracked_folder(self.edit_frame.headers[0]),rl_paths.tracked_folder(self.edit_frame.headers[0]))
             self.untracked_replays.delete_selected()
             self.tracked_replays.insert(0,self.edit_frame.replay_entry[2],self.edit_frame.replay_entry)
             if self.untracked_replays.size() == 0:
                 self.edit_frame.clear()
 
-        # self.tracked_replays.insert(0,self.edit_frame.values[2],self.edit_frame.values)
-        # self.untracked_replays.delete()
-
     def replay_display_edit(self,variables):
-        print "Notified of edit display",variables
+        print "Displaying in edit",variables
         self.edit_frame.display_new(list(variables))
 
     def replay_displayinfo(self,variables):
