@@ -162,16 +162,24 @@ class ReplayManager(tk.Frame):
             self.untracked_replays.insert("end","Replay "+str(tdict[f]),(filename,tdict[f],fullpath))
                     
     def track_selected_file(self):
-        if len(self.untracked_replays.curselection()) == 1:
+        try:
+            
             self.edit_frame.create_entry()
-
-        if  hasattr(self.edit_frame,"replay_entry"):
-
-            shutil.move(rl_paths.untracked_folder(self.edit_frame.headers[0]),rl_paths.tracked_folder(self.edit_frame.headers[0]))
-            self.untracked_replays.delete_selected()
-            self.tracked_replays.insert(0,self.edit_frame.replay_entry[2],self.edit_frame.replay_entry)
-            if self.untracked_replays.size() == 0:
-                self.edit_frame.clear()
+            if  hasattr(self.edit_frame,"replay_entry") and self.edit_frame.replay_entry != None:
+                
+                    shutil.move(rl_paths.untracked_folder(self.edit_frame.headers[0]),rl_paths.tracked_folder(self.edit_frame.headers[0]))
+                    print "Inserting into tracked replays"
+                    self.tracked_replays.insert(0,self.edit_frame.replay_entry[2],self.edit_frame.replay_entry)
+                    print "insert done"
+                    print "Deleting selected from untracked replays"
+                    self.untracked_replays.delete_selected()
+                    print "delete done"
+                    if self.untracked_replays.size() == 0:
+                        self.edit_frame.clear()
+                        print "Cleared edit frame"
+                    print "\n"
+        except sqlite3.IntegrityError,e:
+            print e
 
     def replay_display_edit(self,variables):
         print "Displaying in edit",variables
