@@ -84,7 +84,12 @@ class ReplayList(tk.Listbox):
         print variables
         while len(items) > 0:
             for i,v in enumerate(other.variables if other.variables else [("",)*8]):
-                if v[4] < variables[0][4]:
+                #If the exact same item is already in the list we can skip it.
+                if v[4] == variables[0][4] and v[0] == variables[0][0]:
+                    items.pop()
+                    variables.pop()
+                    break
+                elif v[4] < variables[0][4]:
                     other.insert(i,items.pop(),variables.pop())
                     break
                 elif i+1 == len(other.variables):
