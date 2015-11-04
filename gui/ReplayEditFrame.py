@@ -90,7 +90,8 @@ class ReplayEditFrame(tk.Frame):
         data = replay_parser.ReplayParser().parse(variables[2])
         self.headers = variables
         self.values = []
-        print "Displaying new"
+
+        print "\nDisplaying new"
         #New replay
         if 'PlayerStats' in data['header'].keys():
             self.notif_text.set("There might be missing data, doublecheck")
@@ -114,15 +115,16 @@ class ReplayEditFrame(tk.Frame):
                     names_goals[d['PlayerName'].decode('unicode-escape')] = (1 + names_goals.get("PlayerName",[0])[0],d['PlayerTeam'])
             
             for k,v in names_goals.items():
-                self.values.append((None,k,int(names_goals[k][1]),names_goals[k][0])+(None,)*4)
+                self.values.append((None,k,int(names_goals[k][1]),names_goals[k][0])+("",)*4)
 
         print "Clearing self"
         self.clear()
-        print "Inserting new "
+        print "Inserting new"
         self.name.insert(0,"Replay "+self.headers[1])
         self.mapname.insert(0,names.stadiums.get(data['header']['MapName'].lower(),data['header']['MapName']))
         self.date.insert(0,re.sub(":(\d\d)-"," \\1:",data['header']['Date']))
         self.table_insert_values()
+        print "Finished inserting values into table\n"
 
     def table_insert_values(self):
         """Inserts all values in self.values into the table"""
@@ -144,6 +146,7 @@ class ReplayEditFrame(tk.Frame):
         self.name.delete(0,"end")
         self.mapname.delete(0,"end")
         self.date.delete(0,"end")
+        self.replay_entry = None
 
     def create_entry(self):
         if not self.valid(): return
@@ -155,17 +158,21 @@ class ReplayEditFrame(tk.Frame):
         try:
             with DB_Manager(debug=True) as dmann:
                 #Create a replay entry and get the id.
+
                 c = dmann.add_replay(filename=self.headers[0],name=replay_name, mapname=map_name, date_time=date)
                 idx = c.lastrowid
                 self.replay_entry = (idx,self.headers[0],replay_name,map_name,date)
+                print "Created: ",self.replay_entry
 
                 #Make list of tuples to be inserted into database
-                print [(idx,)+values[1:] for values in self.values]
+                print "Inserting teams: ",[(idx,)+values[1:] for values in self.values]
                 dmann.add_many_team([(idx,)+values[1:] for values in self.values])
                 dmann.add_note(idx,"")
-            self.notif_text.set("Replay added")
+                self.notif_text.set("Replay added")
+
         except sqlite3.IntegrityError, e:
             self.notif_text.set("ERROR: COULD NOT CREATE ENTRY\n"+str(e))
+            raise
 
     def valid(self):
         date = self.date.get()
@@ -188,15 +195,16 @@ class ReplayEditFrame(tk.Frame):
         if row_index < len(self.values):
             vals = self.values[row_index]
 
+        print "Creating edit popup for ",vals
         #Create the edit popup.
         popup = Popups.TableRowEditPopup(self,row_values=vals,winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()))
-        popup.set_done_callback(lambda vals : self.replace_row(selection,vals))
+        popup.set_done_callback(lambda vals_ : self.replace_row(selection,vals_))
 
     def add_empty_row(self):
         """Inserts an empty row at the end of the table.
         """
         self.table.insert("", "end",
-             values= ("None",)*len(self.allcols),
+             values= ("",)*len(self.allcols),
              tags=("new_row"))
 
     def replace_row(self,row_selection,vals):
@@ -207,6 +215,9 @@ class ReplayEditFrame(tk.Frame):
             self.table.set(row_selection,heading,vals[idx+1])
         idx = self.table.index(row_selection)
         if idx < len(self.values):
+            print "Replacing %s with %s" %(self.values[idx],vals)
             self.values[idx] = vals
+
         else:
+            print "Appending",vals
             self.values.append(vals) 
