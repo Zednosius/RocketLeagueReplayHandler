@@ -65,10 +65,10 @@ class TableRowEditPopup(tk.Toplevel):
         label_col=0
         entry_col=1
         self.entries = []
-        print self.row_values
+        print "row values: ",self.row_values
 
         for (i,txt) in enumerate(["Player Name","Team","Goals","Saves","Shots","Assists","Score"]):
-            print i,txt
+            # print i,txt
             tk.Label(self,text=txt).grid(row=i,column=label_col,sticky="we")
             self.entries.append(tk.Entry(self))
             self.entries[i].grid(row=i,column=entry_col,sticky="we")
@@ -95,6 +95,7 @@ class TableRowEditPopup(tk.Toplevel):
             self.notif.set("Invalid entries")
             return
         self.final_values = (None,)+tuple(map(lambda ent: ent.get() , self.entries))
+        print "Final row values: ",self.final_values
         if self.done_callback:
             self.done_callback(self.final_values)
         self.destroy()
