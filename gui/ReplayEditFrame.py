@@ -78,7 +78,7 @@ class ReplayEditFrame(tk.Frame):
         for col in self.allcols:
             self.table.column(col,anchor='center',minwidth=75,width=75)
 
-        self.table.column('#1',anchor='center',minwidth=100,width=100)
+        self.table.column('#1',anchor='center',minwidth=100,width=160)
         self.table.bind("<<TreeviewSelect>>",self.edit_row)
 
 
@@ -134,8 +134,8 @@ class ReplayEditFrame(tk.Frame):
              values=values[1:],
              tags=("orange" if int(values[2]) == 1 else "blue"))
 
-            if(self.table.column("#1","width") < self.mFont.measure(values[1])): #Adjust table column size if needed
-                self.table.column("#1",width=int(self.mFont.measure(values[1])*1.2))
+            # if(self.table.column("#1","width") < self.mFont.measure(values[1])): #Adjust table column size if needed
+            #     self.table.column("#1",width=int(self.mFont.measure(values[1])*1.2))
 
         self.table.tag_configure('orange' , background='#FF7F00',font=self.mFont)
         self.table.tag_configure('blue',    background='#82CFFD',font=self.mFont)

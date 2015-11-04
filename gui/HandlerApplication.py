@@ -76,6 +76,7 @@ class ReplayManager(tk.Frame):
         self.staged_list.set_delete_callback(self.delete_from_staging)
 
         frame.grid_columnconfigure(0,weight=1)
+        frame.grid_columnconfigure(1,weight=1)
         frame.grid_columnconfigure(2,weight=1)
         frame.grid_rowconfigure(1,weight=1)
 
