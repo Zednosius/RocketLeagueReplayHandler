@@ -141,11 +141,13 @@ class DB_Manager():
         return self
 
     def __exit__(self ,type_, value, traceback):
-        print type_,value,traceback
+        self.dprint("with __exit__ values: %s %s %s", type_,value,traceback)
         if type_ or traceback:
             self.conn.rollback()
+            self.dprint("Rolled back")
         else:
             self.conn.commit()
+            self.dprint("Committed!")
         self.close()
 
     def get_where_clause(self,table_alias,kw):
