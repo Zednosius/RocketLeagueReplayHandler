@@ -42,7 +42,9 @@ class DB_Manager():
         with self.conn:
             self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",(ID,player_name,teamNum,goals,saves,shots,assists,score))
             self.dprint("Inserted %s %s %s %s %s %s %s %s into teams",ID,player_name,teamNum,goals,saves,shots,assists,score)
-
+    def add_many_team(self,list_of_tuples):
+        with self.conn:
+            self.conn.executemany("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",list_of_tuples)
     def add_tag(self,ID,tagname,timestamp):
         with self.conn:
             self.conn.execute("INSERT INTO tags VALUES (?, ?, ?);",(ID,tagname,timestamp))
@@ -110,6 +112,8 @@ class DB_Manager():
         if replayfilters:
             replay_where = self.get_where_clause("R",replayfilters)
             query += "where " + replay_where
+        else:
+            query += "where 1 "
 
         if tagfilters:
             tag_where = self.get_where_clause("T",tagfilters)

@@ -36,7 +36,7 @@ class ReplayManager(tk.Frame):
     def start_browse_mode(self,frame):
         print "starting browse mode"
         tk.Label(frame,text="Replays").grid(row=0,column=0,sticky="NS")
-        tk.Button(frame,text="Filter").grid(row=2,column=0,sticky="WE")
+        tk.Button(frame,text="Filter", command=self.filter_replays).grid(row=2,column=0,sticky="WE")
         tk.Label(frame,text="Staged").grid(row=0,column=2,sticky="NS")
         tk.Button(frame,text="Unstage",command=self.unstage_all).grid(row=2,column=2,sticky="WE")
         
@@ -165,26 +165,26 @@ class ReplayManager(tk.Frame):
     def track_selected_file(self):
         # t1 = threading.Thread(target=self.edit_frame.create_entry)
         # t1.start()
-        self.edit_frame.create_entry()
-        # while(t1.is_alive()):
-            # self.update_idletasks()
-
+        if len(self.untracked_replays.curselection()) == 1:
+            self.edit_frame.create_entry()
 
         if  self.edit_frame.replay_entry:
             #print self.edit_frame.replay_entry
             shutil.move(rl_paths.untracked_folder(self.edit_frame.headers[0]),rl_paths.tracked_folder(self.edit_frame.headers[0]))
             self.untracked_replays.delete_selected()
             self.tracked_replays.insert(0,self.edit_frame.replay_entry[2],self.edit_frame.replay_entry)
-            self.edit_frame.clear()
+            if self.untracked_replays.size() == 0:
+                self.edit_frame.clear()
 
         # self.tracked_replays.insert(0,self.edit_frame.values[2],self.edit_frame.values)
         # self.untracked_replays.delete()
 
     def replay_display_edit(self,variables):
+        print "Notified of edit display",variables
         self.edit_frame.display_new(list(variables))
 
     def replay_displayinfo(self,variables):
-        ##print "Displaying new info",variables
+        print "Displaying new info",variables
         self.info.display_new(list(variables))
 
     def save(self):
@@ -209,9 +209,12 @@ class ReplayManager(tk.Frame):
                 print e #If there were duplicates in the list somehow we get a can't find error
 
     def unstage_all(self):
+        if self.staged_list.size() == 0: return
         self.staged_list.delete(0,self.staged_list.size())
 
-
+    def filter_replays(self):
+        pop = FilterPopup( winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()) )
+        pop.title("Filter")
 
         
 

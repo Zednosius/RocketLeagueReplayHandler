@@ -101,7 +101,40 @@ class TableRowEditPopup(tk.Toplevel):
 
 class FilterPopup(tk.Toplevel):
 
-    filter_options = ["replay name","map name","player name",]
+    filter_options ={
+        "replayfilters":["Map","Date"],
+        "tagfilters":   ["Tag"],
+        "playerfilters":["Player","Goals","Saves"]
+        }
+    db_translate={"Player":"playername","Date":"date_time"}
+    def __init__(self,parent=None,**kw):
+        self.callback = kw.pop("callback",None)
+        wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
+        tk.Toplevel.__init__(self,parent,**kw)
 
-    def __init__(self,parent,**kw):
-        tk.Toplevel.__init__(parent,**kw)
+
+        self.entries = {}
+        idx = 0
+        for filtertype, options in self.filter_options.items():             
+            for option in options:
+                tk.Label(self,text=option).grid(row=idx,column=0)
+                self.entries[option] = (tk.Entry(self))
+                self.entries[option].grid(row=idx,column=1,sticky="we")
+                idx += 1
+
+        tk.Button(self,text="Apply",command=self.done).grid(row=idx+1,column=0,columnspan=2,sticky="we")
+        self.grid_columnconfigure(1,weight=1)
+        self.geometry("+%d+%d" % (wroot_x+50, wroot_y+50))
+
+    def done(self):
+        filters = {}
+        for filtertype, options in self.filter_options.items():
+            filters[filtertype] = {}
+            for option in options:
+                if self.entries[option].get() != "":
+                      filters[filtertype][self.db_translate.get(option,option)] = ("=",self.entries[option].get())
+        with DB_Manager() as dmann:
+            replays = dmann.filter_replays(**filters)
+         if self.callback:
+             self.callback(replays)
+         self.destroy()
