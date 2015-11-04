@@ -31,49 +31,42 @@ class DB_Manager():
         self.debug = debug
 
     def add_replay(self, filename, name, mapname, date_time):
-        with self.conn:
-            self.dprint("Inserted %s %s %s %s into replays ",filename,name,mapname,date_time)
-            return self.conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?, ?, ?, ?);", (filename, name, mapname,date_time))
+        self.dprint("Inserted %s %s %s %s into replays ",filename,name,mapname,date_time)
+        return self.conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?, ?, ?, ?);", (filename, name, mapname,date_time))
             
     def replay_exists(self,filename):
-        with self.conn:
-            return self.conn.execute("SELECT 1 from replays WHERE filename=?",(filename,)).fetchone()
+        return self.conn.execute("SELECT 1 from replays WHERE filename=?",(filename,)).fetchone()
+
     def add_team(self,ID,player_name,teamNum,goals=None,saves=None,shots=None,assists=None,score=None):
-        with self.conn:
-            self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",(ID,player_name,teamNum,goals,saves,shots,assists,score))
-            self.dprint("Inserted %s %s %s %s %s %s %s %s into teams",ID,player_name,teamNum,goals,saves,shots,assists,score)
+        self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",(ID,player_name,teamNum,goals,saves,shots,assists,score))
+        self.dprint("Inserted %s %s %s %s %s %s %s %s into teams",ID,player_name,teamNum,goals,saves,shots,assists,score)
+
     def add_many_team(self,list_of_tuples):
-        with self.conn:
-            self.conn.executemany("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",list_of_tuples)
+        self.conn.executemany("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",list_of_tuples)
+
     def add_tag(self,ID,tagname,timestamp):
-        with self.conn:
-            self.conn.execute("INSERT INTO tags VALUES (?, ?, ?);",(ID,tagname,timestamp))
-            self.dprint("Inserted %s %s %s into tags",ID,tagname,timestamp)
+        self.conn.execute("INSERT INTO tags VALUES (?, ?, ?);",(ID,tagname,timestamp))
+        self.dprint("Inserted %s %s %s into tags",ID,tagname,timestamp)
 
     def add_match_data(self,ID,teamNum,goals,saves):
-        with self.conn:
-            self.conn.execute("INSERT INTO match_data VALUES (?, ?, ?, ?);",(ID,teamNum,goals,saves))
-            self.dprint("Inserted %s %s %s %s into match_data", ID,teamNum,goals,saves)
+        self.conn.execute("INSERT INTO match_data VALUES (?, ?, ?, ?);",(ID,teamNum,goals,saves))
+        self.dprint("Inserted %s %s %s %s into match_data", ID,teamNum,goals,saves)
 
     def add_note(self, ID, note):
-        with self.conn:
-            self.conn.execute("INSERT INTO notes VALUES (?, ?);",(ID,note))
-            self.dprint("Inserted %s %s into notes",ID,note)
+        self.conn.execute("INSERT INTO notes VALUES (?, ?);",(ID,note))
+        self.dprint("Inserted %s %s into notes",ID,note)
 
     def update_note(self,ID,note):
-        with self.conn:
-            self.conn.execute("UPDATE notes SET note=? WHERE id=?",(note,ID))
-            self.dprint("Updated note %s with text '%s'",ID,note)
+        self.conn.execute("UPDATE notes SET note=? WHERE id=?",(note,ID))
+        self.dprint("Updated note %s with text '%s'",ID,note)
 
     def add_group(self, group_name):
-        with self.conn:
-            self.conn.execute("INSERT INTO groups (name) VALUES (?);", (group_name,))
-            self.dprint("Inserted %s into groups",group_name)
+        self.conn.execute("INSERT INTO groups (name) VALUES (?);", (group_name,))
+        self.dprint("Inserted %s into groups",group_name)
 
     def add_replay_to_group(self, ID, gID):
-        with self.conn:
-            self.conn.execute("INSERT INTO group_members VALUES (?, ?);")
-            self.dprint("Inserted %s %s into group_members",ID,gID)
+        self.conn.execute("INSERT INTO group_members VALUES (?, ?);")
+        self.dprint("Inserted %s %s into group_members",ID,gID)
 
     def get_all(self, table,orderBy=None):
         """Get all the rows from specified table"""
@@ -81,9 +74,8 @@ class DB_Manager():
         query = "SELECT * FROM "+table
         if orderBy:
             query += " ORDER BY "+orderBy
-        with self.conn:
-            self.dprint(query)
-            return self.conn.execute(query).fetchall()
+        self.dprint(query)
+        return self.conn.execute(query).fetchall()
 
     def get_all_where(self,table,**kw):
         """Get all the rows from specified table where all conditions are satisfied
@@ -103,8 +95,7 @@ class DB_Manager():
         kw = {k:v[1] for (k,v) in kw.items()}
         self.dprint("SELECT * FROM "+table+" WHERE "+where_clause)
         # print "allw kws: ",kw
-        with self.conn:
-            return self.conn.execute("SELECT * FROM "+table+" WHERE "+where_clause,kw).fetchall()
+        return self.conn.execute("SELECT * FROM "+table+" WHERE "+where_clause,kw).fetchall()
 
     def filter_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
         print replayfilters,tagfilters,playerfilters,groupfilters
@@ -135,13 +126,13 @@ class DB_Manager():
         kw = {k:v[1] for (k,v) in kw.items()}
         print "query:",query,"kws:",kw
 
-        with self.conn:
-            return self.conn.execute(query,kw).fetchall()
+        return self.conn.execute(query,kw).fetchall()
 
         "SELECT * FROM replays R WHERE <replayfilters>  \
         AND EXISTS (SELECT T.id FROM tags T WHERE <tagfilters>) \
         AND EXISTS (SELECT P.id FROM teams P WHERE <playerfilters>\
         AND EXISTS (SELECT G.id FROM (SELECT * from group g inner join group_members gm on g.g_id=gm.g_id AND g.name=groupname"
+    
     def close(self):   
         self.conn.close()
 
@@ -150,6 +141,7 @@ class DB_Manager():
         return self
 
     def __exit__(self ,type, value, traceback):
+        self.conn.commit()
         self.close()
 
     def get_where_clause(self,table_alias,kw):
