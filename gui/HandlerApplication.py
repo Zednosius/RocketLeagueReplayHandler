@@ -165,7 +165,7 @@ class ReplayManager(tk.Frame):
         if len(self.untracked_replays.curselection()) == 1:
             self.edit_frame.create_entry()
 
-        if  self.edit_frame.replay_entry:
+        if  hasattr(self.edit_frame,"replay_entry"):
 
             shutil.move(rl_paths.untracked_folder(self.edit_frame.headers[0]),rl_paths.tracked_folder(self.edit_frame.headers[0]))
             self.untracked_replays.delete_selected()

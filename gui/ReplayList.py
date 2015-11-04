@@ -135,6 +135,10 @@ class ReplayList(tk.Listbox):
     def delete_selected(self):
         tk.Listbox.delete(self,self.selected_item)
         self.variables.pop(self.selected_item)
+
+        if self.selected_item >= self.size():
+            self.selected_item -= 1
+
         self.selection_set(self.selected_item)
         self.notify_parent_displayinfo(None)
 

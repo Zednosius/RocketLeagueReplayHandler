@@ -95,17 +95,26 @@ class ReplayEditFrame(tk.Frame):
         if 'PlayerStats' in data['header'].keys():
             self.notif_text.set("There might be missing data, doublecheck")
             for ps in data['header']['PlayerStats']:
-                self.values.append((None,ps['Name'].decode('unicode-escape'),ps['Team'],ps['Goals'],ps['Saves'],ps['Shots'],ps['Assists'],ps['Score']))
-
+                self.values.append(
+                    (None,ps.get('Name', None).decode('unicode-escape'),
+                        ps.get('Team', None),
+                        ps.get('Goals', None),
+                        ps.get('Saves', None),
+                        ps.get('Shots', None),
+                        ps.get('Assists', None),
+                        ps.get('Score', None))
+                    )
+            print self.values
         else:
             #Old replay
             self.notif_text.set("Old replay format, might be missing data")
             names_goals = {}
             for d in data['header']['Goals']:
-                names_goals[d['PlayerName'].decode('unicode-escape')] = (1 + names_goals.get("PlayerName",[0])[0],d['PlayerTeam'])
+                if "PlayerName" in d:
+                    names_goals[d['PlayerName'].decode('unicode-escape')] = (1 + names_goals.get("PlayerName",[0])[0],d['PlayerTeam'])
             
             for k,v in names_goals.items():
-                self.values.append((None,k,int(names_goals[k][1]),names_goals[k][0]))
+                self.values.append((None,k,int(names_goals[k][1]),names_goals[k][0])+(None,)*4)
 
         print "Clearing self"
         self.clear()
@@ -151,6 +160,7 @@ class ReplayEditFrame(tk.Frame):
                 self.replay_entry = (idx,self.headers[0],replay_name,map_name,date)
 
                 #Make list of tuples to be inserted into database
+                print [(idx,)+values[1:] for values in self.values]
                 dmann.add_many_team([(idx,)+values[1:] for values in self.values])
                 dmann.add_note(idx,"")
             self.notif_text.set("Replay added")
@@ -186,7 +196,7 @@ class ReplayEditFrame(tk.Frame):
         """Inserts an empty row at the end of the table.
         """
         self.table.insert("", "end",
-             values= ("None",)*len(allcols),
+             values= ("None",)*len(self.allcols),
              tags=("new_row"))
 
     def replace_row(self,row_selection,vals):

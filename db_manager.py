@@ -140,8 +140,12 @@ class DB_Manager():
     def __enter__(self):
         return self
 
-    def __exit__(self ,type, value, traceback):
-        self.conn.commit()
+    def __exit__(self ,type_, value, traceback):
+        print type_,value,traceback
+        if type_ or traceback:
+            self.conn.rollback()
+        else:
+            self.conn.commit()
         self.close()
 
     def get_where_clause(self,table_alias,kw):
