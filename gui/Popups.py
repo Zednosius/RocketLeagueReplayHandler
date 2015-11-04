@@ -133,8 +133,9 @@ class FilterPopup(tk.Toplevel):
             for option in options:
                 if self.entries[option].get() != "":
                       filters[filtertype][self.db_translate.get(option,option)] = ("=",self.entries[option].get())
-        with DB_Manager() as dmann:
-            replays = dmann.filter_replays(**filters)
-         if self.callback:
-             self.callback(replays)
-         self.destroy()
+        # with DB_Manager() as dmann:
+            # replays = dmann.filter_replays(**filters)
+        # print replays
+        if self.callback:
+            self.callback(**filters)
+        self.destroy()

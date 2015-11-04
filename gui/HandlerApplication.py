@@ -112,7 +112,8 @@ class ReplayManager(tk.Frame):
                 replays = mann.filter_replays(replayfilters,tagfilters,playerfilters,groupfilters)
             else:
                 replays = mann.get_all("replays","date_time desc")
-
+        if self.tracked_replays.size() > 0:
+            self.tracked_replays.delete(0,self.tracked_replays.size())
         for replay in replays:
             self.tracked_replays.insert("end",replay[2],replay)
 
@@ -213,10 +214,10 @@ class ReplayManager(tk.Frame):
         self.staged_list.delete(0,self.staged_list.size())
 
     def filter_replays(self):
-        pop = FilterPopup( winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()) )
+        pop = FilterPopup( 
+            winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()),
+            callback=self.fetch_replays)
         pop.title("Filter")
-
-        
 
 
         
