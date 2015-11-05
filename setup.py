@@ -30,10 +30,10 @@ def initdb(loc="rocketleague.db"):
         conn.execute("CREATE TABLE notes (id integer REFERENCES replays ON DELETE CASCADE, note text);")
         
         #ID;NAME; (For grouping a set of replays together) 
-        conn.execute("CREATE TABLE groups (g_id integer PRIMARY KEY, name text);")
+        conn.execute("CREATE TABLE groups (g_id integer PRIMARY KEY, name text UNIQUE);")
 
         #Many-to-Many relation
-        conn.execute("CREATE TABLE group_members (g_id integer REFERENCES groups ON DELETE CASCADE, id integer REFERENCES replays ON DELETE CASCADE);")
+        conn.execute("CREATE TABLE group_members (g_id integer REFERENCES groups ON DELETE CASCADE, id integer REFERENCES replays ON DELETE CASCADE, PRIMARY KEY (g_id,id));")
 
         print "Success!"
     if loc == ":memory:":
