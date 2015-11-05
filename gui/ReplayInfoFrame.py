@@ -16,7 +16,7 @@ def group_popup(grouplist,infowidget):
     AddToGroupPopup(grouplist=grouplist, replay_id=infowidget.id, winfo_rootc=(infowidget.winfo_rootx(),infowidget.winfo_rooty()))
 
 #http://stackoverflow.com/questions/1966929/tk-treeview-column-sort
-def treeview_sort_column(tv, col, reverse,cast):
+def treeview_sort_column(tv, col, reverse, cast):
         l = [(cast(tv.set(k, col)), k) for k in tv.get_children('')]
         l.sort(reverse=reverse)
 
@@ -40,7 +40,7 @@ class ReplayInfoFrame(tk.Frame):
         style.configure('Treeview', rowheight=40)
         self.table['show'] = 'headings'
         #Set up headings
-        self.table.heading("#1", text="Player",command=lambda:treeview_sort_column(self.table, "#1", False,str))
+        self.table.heading("#1", text="Player",command=lambda:treeview_sort_column(self.table, "#1", False,unicode))
         self.table.heading("#2", text="Team"  ,command=lambda:treeview_sort_column(self.table ,"#2", False,int))
         self.table.heading("#3", text="Goals" ,command=lambda:treeview_sort_column(self.table, "#3", False,int))
         self.table.heading("#4", text="Saves" ,command=lambda:treeview_sort_column(self.table, "#4", False,int))
@@ -135,6 +135,7 @@ class ReplayInfoFrame(tk.Frame):
             self.tags = self.cached[self.id]["tags"]
             self.notes = self.cached[self.id]["notes"]
             self.groups = self.cached[self.id]["groups"]
+            print "Cached groups:",self.groups
             # print "Fetched cached!"
             return 
 
@@ -143,6 +144,7 @@ class ReplayInfoFrame(tk.Frame):
             self.tags   = mann.get_all_where("tags",id=("=",self.id))
             self.notes  = mann.get_all_where("notes",id=("=",self.id))
             self.groups = mann.get_groups(self.id)
+            print "groups: ",self.groups
 
             
         # print "cached: ",self.cached[self.id]
@@ -169,6 +171,9 @@ class ReplayInfoFrame(tk.Frame):
             self.taglist.insert(tag,time)
         self.grouplist.delete(0,"end")
         for group in self.groups:
+            print "inserting group",group
+            if type(group) == tuple:
+                group = group[0]
             self.grouplist.insert(group)
 
         self.note_body.delete("1.0","end")
@@ -262,6 +267,7 @@ class TagList(tk.Frame):
 class GroupList(TagList):
 
     def insert(self,groupname):
+        print "inserting",groupname
         self.list.append(groupname)
         self.list_body.insert("end",groupname)
 
