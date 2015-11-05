@@ -9,8 +9,11 @@ from Popups import *
 from db_manager import *
 
 
-def tag_popup(taglist,infowidget):
+def tag_popup(taglist, infowidget):
     TagPopup(taglist=taglist,infowidget=infowidget)
+
+def group_popup(grouplist,infowidget):
+    AddToGroupPopup(grouplist=grouplist, replay_id=infowidget.id, winfo_rootc=(infowidget.winfo_rootx(),infowidget.winfo_rooty()))
 
 #http://stackoverflow.com/questions/1966929/tk-treeview-column-sort
 def treeview_sort_column(tv, col, reverse,cast):
@@ -97,6 +100,11 @@ class ReplayInfoFrame(tk.Frame):
             with DB_Manager() as dmann:
                 dmann.update_note(self.id,self.note_body.get("1.0","end-1c"))
                 self.cached[self.id]["notes"] = [(self.id,self.note_body.get("1.0","end-1c"),)]
+            print self.values,self.tags,self.notes,self.groups
+            self.cached[self.id]["values"] = list(self.values)
+            self.cached[self.id]["tags"] = [(self.id,)+v for v in self.taglist.list]
+            self.cached[self.id]["notes"] = list(self.notes)
+            self.cached[self.id]["groups"] = list(self.grouplist.list)
 
 
     def use_headers(self,headers):
@@ -126,6 +134,7 @@ class ReplayInfoFrame(tk.Frame):
             self.values = self.cached[self.id]["values"]
             self.tags = self.cached[self.id]["tags"]
             self.notes = self.cached[self.id]["notes"]
+            self.groups = self.cached[self.id]["groups"]
             # print "Fetched cached!"
             return 
 
@@ -133,10 +142,8 @@ class ReplayInfoFrame(tk.Frame):
             self.values = mann.get_all_where("teams",id=("=",self.id))
             self.tags   = mann.get_all_where("tags",id=("=",self.id))
             self.notes  = mann.get_all_where("notes",id=("=",self.id))
+            self.groups = mann.get_groups(self.id)
 
-            self.cached[self.id]["values"] = list(self.values)
-            self.cached[self.id]["tags"] = list(self.tags)
-            self.cached[self.id]["notes"] = list(self.notes)
             
         # print "cached: ",self.cached[self.id]
     def add_header_label(self,header):
@@ -160,6 +167,10 @@ class ReplayInfoFrame(tk.Frame):
         self.taglist.delete(0,"end")
         for (_,tag,time) in self.tags:
             self.taglist.insert(tag,time)
+        self.grouplist.delete(0,"end")
+        for group in self.groups:
+            self.grouplist.insert(group)
+
         self.note_body.delete("1.0","end")
         self.note_body.insert("end",self.notes[0][1] if self.notes else "")
 
@@ -187,8 +198,11 @@ class ReplayInfoFrame(tk.Frame):
         #############################
 
 
-        self.taglist = TagList(self)
+        self.taglist = TagList(self,callback=tag_popup,text="Add tag")
         self.taglist.grid(row=0,column=1,rowspan=2,sticky="NSWE")
+
+        self.grouplist = GroupList(self,callback=group_popup,text="Add group")
+        self.grouplist.grid(row=0,column=2,rowspan=2,sticky="NSWE")
 
         self.note_frame = tk.Frame(self)
         scrollbar = tk.Scrollbar(self.note_frame)
@@ -201,11 +215,14 @@ class ReplayInfoFrame(tk.Frame):
         self.note_body.grid(row=0,column=0,sticky="NSWE")
         scrollbar.grid(row=0,column=1,sticky="NSE")
         self.note_frame.grid_columnconfigure(0,weight=1)
-        self.note_frame.grid(row=2,column=0,columnspan=2,sticky="NSWE")
+        self.note_frame.grid(row=2,column=0,columnspan=3,sticky="NSWE")
+
         if self.headers:
             self.init()
         self.grid_rowconfigure(2,weight=1)
         self.grid_columnconfigure(0,weight=1)
+
+
     def note_select_all(self):
         self.note_body.tag_add("sel","1.0","end-1c")
         return "break"
@@ -213,24 +230,38 @@ class ReplayInfoFrame(tk.Frame):
 class TagList(tk.Frame):
     def __init__(self,parent,**kw):
         self.mFont = kw.pop("mFont",tkFont.nametofont("TkDefaultFont"))
+        self.callback = kw.pop("callback",None)
+        self.add_text = kw.pop("text","Add")
+        self.list = []
         tk.Frame.__init__(self,parent,kw)
         
         self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
-        self.tag_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
-        self.tag_body.bind("<MouseWheel>",lambda event : self.tag_body.yview("scroll",-event.delta/120,"units"))
-        self.scrollbar.config(command=self.tag_body.yview)
-        self.addbutton = tk.Button(self,text="Add tag",command=lambda taglist=self,parent=parent : tag_popup(taglist,parent))
+        self.list_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
+        self.list_body.bind("<MouseWheel>",lambda event : self.list_body.yview("scroll",-event.delta/120,"units"))
+        self.scrollbar.config(command=self.list_body.yview)
+        self.addbutton = tk.Button(self,text=self.add_text,command=lambda taglist=self,parent=parent : self.callback(taglist,parent))
 
         self.addbutton.grid(row=1,columnspan=2,stick="WE")#.pack(side=tk.BOTTOM,fill=tk.X,expand=1)
         self.scrollbar.grid(row=0,column=1,sticky="SN")#.pack(side=tk.RIGHT, fill=tk.Y)
-        self.tag_body.grid(row=0,column=0,sticky="NSWE")#.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+        self.list_body.grid(row=0,column=0,sticky="NSWE")#.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
         self.grid_rowconfigure(0,weight=1)
 
     def insert(self,tagname,timestamp):
-        self.tag_body.insert("end",tagname+" @ "+timestamp)
-        self.tag_body.config(width=0)
+        
+        self.list.append((tagname,timestamp))
+        self.list_body.insert("end",str(tagname)+" @ "+str(timestamp))
+        self.list_body.config(width=0)
+    
     def see(self,index):
-        self.tag_body.see(index)
+        self.list_body.see(index)
+
     def delete(self,index,end):
-        self.tag_body.delete(index,end)
+        self.list = self.list[0:index]+self.list[len(self.list) if end =="end" else end:len(self.list)]
+        self.list_body.delete(index,end)
+
+class GroupList(TagList):
+
+    def insert(self,groupname):
+        self.list.append(groupname)
+        self.list_body.insert("end",groupname)
 
