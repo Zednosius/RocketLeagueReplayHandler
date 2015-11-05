@@ -31,8 +31,8 @@ def restore():
 
 def main():
     if not os.path.isfile(__location__+"\\rocketleague.db"):
-        import setup
-        setup.initdb()
+        import db_setup
+        db_setup.initdb()
 
     root = Tk()
     root.title("Rocket League Replay Handler")
