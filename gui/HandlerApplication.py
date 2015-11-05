@@ -73,7 +73,7 @@ class ReplayManager(tk.Frame):
         self.tracked_replays.link(self.staged_list)
         self.staged_list.link(self.tracked_replays)
         self.staged_list.set_insert_callback(self.copy_to_staging)
-        self.staged_list.set_delete_callback(self.delete_from_staging)
+        # self.staged_list.set_delete_callback(self.delete_from_staging)
 
         frame.grid_columnconfigure(0,weight=1)
         frame.grid_columnconfigure(1,weight=1)
@@ -119,42 +119,45 @@ class ReplayManager(tk.Frame):
         for replay in replays:
             self.tracked_replays.insert("end",replay[2],replay)
 
-    def scan_and_fetch_untracked(self):
-        p = rl_paths.demo_folder()
-        
 
-        if self.untracked_replays.size() > 0:
-            self.untracked_replays.delete(0,self.untracked_replays.size())
-        if self.staged_list.size() > 0:
-            self.staged_list.delete(0,self.staged_list.size())
-
-        print "Scanning for new replays"
+    def scan_demo_folder(self):
+        self.demo_scan = []
+        print "Scanning for demo folder"
         with DB_Manager(debug=True) as dmann:
             l = [rl_paths.demo_folder( os.path.splitext(x)[0]) 
-                for x in os.listdir(p) 
+                for x in os.listdir(rl_paths.demo_folder()) 
                 if os.path.isfile(rl_paths.demo_folder(os.path.splitext(x)[0]))]
-
-            
             l.sort(reverse=True,key=lambda x: os.path.getmtime(x))
-            print l
+
             for f in l:
                 filename = os.path.splitext(os.path.basename(f))[0]
-                fullpath = f
-                #print "On file: "+f
-                if os.path.isfile(fullpath) and not dmann.replay_exists(filename):
-                    #print "%s was not in database"%(filename)
-                    try:
-                        shutil.copy2(rl_paths.demo_folder(filename),rl_paths.untracked_folder(filename)) #Copy to untracked folder
-                        if not os.path.isfile(rl_paths.backup_folder(filename)):
-                            shutil.copy2(rl_paths.demo_folder(filename),rl_paths.backup_folder(filename)) #Copy to backup folder
-                        os.remove(fullpath) #Remove old copy
-                        #print "Moved %s to untracked"
-                    except Exception, e:
-                        print "Error during file handling"
-                        print e
-                elif os.path.isfile(fullpath):
-                    #print "%s existed in database"%(f)
-                    var = dmann.get_all_where("replays",filename=("=",filename))[0]
+                if os.path.isfile(f) and not dmann.replay_exists(filename):
+                    self.demo_scan.append({"path":f,"name":filename,"tracked":False})
+                elif os.path.isfile(f):
+                    self.demo_scan.append({"path":f,"name":filename,"tracked":True})
+                else:
+                    pass
+        print "Scan done"
+
+    def move_new_replays_to_untracked(self):
+        for entry in self.demo_scan:
+            if not entry["tracked"]:
+                print "%s was not in database"%(entry["path"])
+                try:
+                    shutil.copy2(rl_paths.demo_folder(entry['name']),rl_paths.untracked_folder(entry['name'])) #Copy to untracked folder
+                    if not os.path.isfile(rl_paths.backup_folder(entry['name'])):
+                        shutil.copy2(rl_paths.demo_folder(entry['name']),rl_paths.backup_folder(entry['name'])) #Copy to backup folder
+                    os.remove(entry["path"]) #Remove old copy
+                    print "Moved %s to untracked"
+                except Exception, e:
+                    print "Error during file handling"
+                    print e
+
+    def insert_scanned_staged(self):
+        with DB_Manager() as dmann:
+            for entry in self.demo_scan:
+                if entry['tracked']:
+                    var = dmann.get_all_where("replays",filename=("=",entry["name"]))[0]
                     if self.staged_list.size() == 0: 
                         self.staged_list.insert("end",var[2],var)
                     else:
@@ -167,6 +170,7 @@ class ReplayManager(tk.Frame):
                                 self.staged_list.insert("end",var[2],var)
                                 break
 
+    def insert_untracked(self):
         untracked = rl_paths.untracked_folder()
         l = os.listdir(untracked)
         tdict = {}
@@ -190,6 +194,19 @@ class ReplayManager(tk.Frame):
             filename = os.path.splitext(f)[0]
             fullpath = untracked+"\\"+f
             self.untracked_replays.insert("end","Replay "+str(tdict[f]),(filename,tdict[f],fullpath))
+
+    def scan_and_fetch_untracked(self):
+        self.scan_demo_folder()
+
+        if self.untracked_replays.size() > 0:
+            self.untracked_replays.delete(0,self.untracked_replays.size())
+        if self.staged_list.size() > 0:
+            self.staged_list.delete(0,self.staged_list.size())
+
+        self.move_new_replays_to_untracked()
+        self.insert_scanned_staged()
+        self.insert_untracked()
+
                     
     def track_selected_file(self):
         try:
@@ -224,24 +241,30 @@ class ReplayManager(tk.Frame):
         self.info.save()
 
     def copy_to_staging(self,variables):
+        print "Copying to staging"
         if not os.path.isfile(rl_paths.demo_folder(variables[1])):
             shutil.copy2(rl_paths.tracked_folder(variables[1]),rl_paths.demo_folder(variables[1]))
+            print "copy to demo"
 
         if not os.path.isfile(rl_paths.tracked_folder(variables[1])):
             shutil.copy2(rl_paths.demo_folder(variables[1]),rl_paths.tracked_folder(variables[1]))
+            print "Copy to tracked"
 
         if not os.path.isfile(rl_paths.backup_folder(variables[1])):
             shutil.copy2(rl_paths.demo_folder(variables[1]),rl_paths.backup_folder(variables[1]))
+            print "copy to backup"
 
     def delete_from_staging(self,variables_list):
         for variables in variables_list:
             try:
+                print "Removing: ",variables
                 os.remove(rl_paths.demo_folder(variables[1]))
             except WindowsError,e:
                 print e #If there were duplicates in the list somehow we get a can't find error
 
     def unstage_all(self):
         if self.staged_list.size() == 0: return
+        self.delete_from_staging(self.staged_list.variables)
         self.staged_list.delete(0,self.staged_list.size())
 
     def filter_replays(self):
