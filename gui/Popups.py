@@ -175,14 +175,19 @@ class AddToGroupPopup(tk.Toplevel):
         print "adding ",self.combobox.get()
         gname  =self.combobox.get()
         with DB_Manager() as dmann:
-            group = dmann.get_all_where("groups",name=("=",gname))
-            print group
+            print "selected groupname: ",gname
+            print dmann.get_all("groups")
+            group = dmann.get_all_where("groups",name=("=",unicode(gname)))
+            print "db_group: ",group
             if not group:
                 c = dmann.add_group(gname)
                 g_id = c.lastrowid
             else:
                 g_id = group[0][0]
-            dmann.add_replay_to_group(self.replay_id, g_id)
+            try:
+                dmann.add_replay_to_group(self.replay_id, g_id)
+            except sqlite3.IntegrityError,e:
+                pass #Cannot add replay to same group twice.
             self.grouplist.insert(gname)
             self.combovalues.append(gname)
 
