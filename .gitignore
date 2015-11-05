@@ -2,3 +2,5 @@ data/*
 *.pyc
 *.pyw
 *.db
+build/*
+dist/*
