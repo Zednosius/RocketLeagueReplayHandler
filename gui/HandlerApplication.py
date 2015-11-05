@@ -68,7 +68,7 @@ class ReplayManager(tk.Frame):
 
         self.info = ReplayInfoFrame(frame)#tk.Frame(self,width=100,height=100)
 
-        self.info.grid(row=1,column=1,rowspan=2,sticky="NS")
+        self.info.grid(row=1,column=1,rowspan=2,sticky="NSWE")
 
         self.tracked_replays.link(self.staged_list)
         self.staged_list.link(self.tracked_replays)
