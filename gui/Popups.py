@@ -105,9 +105,10 @@ class FilterPopup(tk.Toplevel):
     filter_options ={
         "replayfilters":["Map","Date"],
         "tagfilters":   ["Tag"],
-        "playerfilters":["Player","Goals","Saves"]
+        "playerfilters":["Player","Goals","Saves"],
+        "groupfilters":["Group Name"],
         }
-    db_translate={"Player":"playername","Date":"date_time"}
+    db_translate={"Player":"playername","Date":"date_time","Group Name":"name"}
     def __init__(self,parent=None,**kw):
         self.callback = kw.pop("callback",None)
         wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
@@ -118,6 +119,7 @@ class FilterPopup(tk.Toplevel):
         idx = 0
         for filtertype, options in self.filter_options.items():             
             for option in options:
+                print filtertype,option
                 tk.Label(self,text=option).grid(row=idx,column=0)
                 self.entries[option] = (tk.Entry(self))
                 self.entries[option].grid(row=idx,column=1,sticky="we")
@@ -140,3 +142,49 @@ class FilterPopup(tk.Toplevel):
         if self.callback:
             self.callback(**filters)
         self.destroy()
+
+class AddToGroupPopup(tk.Toplevel):
+
+    def __init__(self,parent=None,**kw):
+        self.callback = kw.pop("callback",None)
+        wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
+        self.grouplist = kw.pop("grouplist",[])
+        self.replay_id = kw.pop("replay_id",-1)
+
+        tk.Toplevel.__init__(self,parent,**kw)
+
+
+        
+        with DB_Manager() as dmann:
+            groups = dmann.get_all("groups")
+        print groups
+        self.combovalues = [group[1] for group in groups]
+        self.label = tk.Label(self,text="Groups")
+        self.combobox = ttk.Combobox(self,values=self.combovalues)
+        self.addbutton = tk.Button(self,text="Add",command=self.add)
+
+        self.label.grid(row=0,column=0,sticky="we")
+        self.combobox.grid(row=1,column=0,sticky="we")
+        self.addbutton.grid(row=2,column=0,sticky="we")
+
+
+
+        self.geometry("+%d+%d" % (wroot_x+50, wroot_y+50))
+
+    def add(self):
+        print "adding ",self.combobox.get()
+        gname  =self.combobox.get()
+        with DB_Manager() as dmann:
+            group = dmann.get_all_where("groups",name=("=",gname))
+            print group
+            if not group:
+                c = dmann.add_group(gname)
+                g_id = c.lastrowid
+            else:
+                g_id = group[0][0]
+            dmann.add_replay_to_group(self.replay_id, g_id)
+            self.grouplist.insert(gname)
+            self.combovalues.append(gname)
+
+    def done(self):
+        pass
