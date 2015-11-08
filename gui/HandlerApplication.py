@@ -17,10 +17,17 @@ import time
 import threading
 import rl_paths
 import replay_parser
+import logging
+from logging.handlers import RotatingFileHandler
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = RotatingFileHandler("log.log",mode='a',maxBytes=1024*1024*5,backupCount=3,encoding="Utf-8",delay=0)
+logger.addHandler(handler)
 
 class ReplayManager(tk.Frame):
     def __init__(self,parent, **kw):
+        logger.info("Creating Manager")
         rl_paths.make_dirs()
         tk.Frame.__init__(self, parent, **kw)
         n = ttk.Notebook(self)
@@ -31,11 +38,12 @@ class ReplayManager(tk.Frame):
         n.pack(fill="both",expand=1)
         self.start_browse_mode(f1)
         self.start_add_mode(f2)
+        logger.info("Manager created")
 
 
 
     def start_browse_mode(self,frame):
-        print "starting browse mode"
+        logger.info("Creating browse tab")
         tk.Label(frame,text="Replays").grid(row=0,column=0,sticky="NS")
         tk.Button(frame,text="Filter", command=self.filter_replays).grid(row=2,column=0,sticky="WE")
         tk.Label(frame,text="Staged").grid(row=0,column=2,sticky="NS")
@@ -79,9 +87,10 @@ class ReplayManager(tk.Frame):
         frame.grid_columnconfigure(1,weight=1)
         frame.grid_columnconfigure(2,weight=1)
         frame.grid_rowconfigure(1,weight=1)
+        logger.info("Browse tab created")
 
     def start_add_mode(self,frame):
-        print "Addmode"
+        logger.info("Creating add tab")
         tk.Label(frame,text="Untracked Replays").grid(row=0,column=0,sticky="NSWE")
         frame.replay_displayinfo = self.replay_display_edit
         f  = tk.Frame(frame)
@@ -105,30 +114,38 @@ class ReplayManager(tk.Frame):
         frame.grid_rowconfigure(1,weight=1)
         frame.grid_columnconfigure(0,weight=1)
         frame.grid_columnconfigure(1,weight=1)
+        logger.info("Add tab created")
 
 
     def fetch_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
+        logger.info("Fetching replays")
         with DB_Manager() as mann:
             if replayfilters  or tagfilters or playerfilters or groupfilters:
-                #print "dicts: ",replayfilters,tagfilters,playerfilters,groupfilters
                 replays = mann.filter_replays(replayfilters,tagfilters,playerfilters,groupfilters)
+                logger.info("Fetched replays from database with parameters %s %s %s %s",
+                    replayfilters,tagfilters,playerfilters,groupfilters)
             else:
                 replays = mann.get_all("replays","date_time desc")
+                logger.info("Fetched all replays (paramless)")
+
         if self.tracked_replays.size() > 0:
             self.tracked_replays.delete(0,self.tracked_replays.size())
+            logger.info("Emptied tracked_replay list")
+
         for replay in replays:
             self.tracked_replays.insert("end",replay[2],replay)
+        logger.info("Inserted replays into tracked_replay_list")
 
 
     def scan_demo_folder(self):
         self.demo_scan = []
-        print "Scanning for demo folder"
+        logger.info("Scanning demo on path %s",rl_paths.demo_folder())
         with DB_Manager(debug=True) as dmann:
             l = [rl_paths.demo_folder( os.path.splitext(x)[0]) 
                 for x in os.listdir(rl_paths.demo_folder()) 
                 if os.path.isfile(rl_paths.demo_folder(os.path.splitext(x)[0]))]
             l.sort(reverse=True,key=lambda x: os.path.getmtime(x))
-
+            logger.info("Sorted replays by date")
             for f in l:
                 filename = os.path.splitext(os.path.basename(f))[0]
                 if os.path.isfile(f) and not dmann.replay_exists(filename):
@@ -137,40 +154,49 @@ class ReplayManager(tk.Frame):
                     self.demo_scan.append({"path":f,"name":filename,"tracked":True})
                 else:
                     pass
-        print "Scan done"
+        logger.info("Appended all %s replays",len(l))
 
     def move_new_replays_to_untracked(self):
+        logger.info("Moving new replays to untracked folder")
+        count = 0
         for entry in self.demo_scan:
             if not entry["tracked"]:
-                print "%s was not in database"%(entry["path"])
+                count += 1
                 try:
                     shutil.copy2(rl_paths.demo_folder(entry['name']),rl_paths.untracked_folder(entry['name'])) #Copy to untracked folder
                     if not os.path.isfile(rl_paths.backup_folder(entry['name'])):
                         shutil.copy2(rl_paths.demo_folder(entry['name']),rl_paths.backup_folder(entry['name'])) #Copy to backup folder
+                        logger.info("Backed up replay %s", entry['name'])
                     os.remove(entry["path"]) #Remove old copy
-                    print "Moved %s to untracked"
                 except Exception, e:
-                    print "Error during file handling"
-                    print e
+                    logger.error("Error during move of file %s",entry['name'])
+                    logger.error("Error was: %s",e)
+        logger.info("Moved a total of %s replays to untracked folder",count)
 
     def insert_scanned_staged(self):
+        logger.info("Inserting scanned staged files into staged list")
+        count = 0
         with DB_Manager() as dmann:
             for entry in self.demo_scan:
                 if entry['tracked']:
+                    count += 1
                     var = dmann.get_all_where("replays",filename=("=",entry["name"]))[0]
                     if self.staged_list.size() == 0: 
                         self.staged_list.insert("end",var[2],var)
                     else:
                         for i,v in enumerate(self.staged_list.variables):
-                            print i,v
+                            #Insert based on date
                             if v[4] < var[4]:
                                 self.staged_list.insert(i,var[2],var)
                                 break
                             elif i+1 == self.staged_list.size():
                                 self.staged_list.insert("end",var[2],var)
                                 break
+        logger.info("Inserted total of %s staged replays",count)
+        logger.info("Staged files insertion complete")
 
     def insert_untracked(self):
+        logger.info("Inserting untracked files")
         untracked = rl_paths.untracked_folder()
         l = os.listdir(untracked)
         tdict = {}
@@ -189,13 +215,16 @@ class ReplayManager(tk.Frame):
 
 
         l.sort(reverse=True,key=lambda x:tdict[x])
-        
+        logger.info("Sorted after time")
         for f in l:
             filename = os.path.splitext(f)[0]
             fullpath = untracked+"\\"+f
             self.untracked_replays.insert("end","Replay "+str(tdict[f]),(filename,tdict[f],fullpath))
+        logger.info("Inserted total of %s untracked replays",len(l))
+        logger.info("Insertion of untracked complete")
 
     def scan_and_fetch_untracked(self):
+        logger.info("Beginning scan and fetch routine")
         self.scan_demo_folder()
 
         if self.untracked_replays.size() > 0:
@@ -206,73 +235,79 @@ class ReplayManager(tk.Frame):
         self.move_new_replays_to_untracked()
         self.insert_scanned_staged()
         self.insert_untracked()
+        logger.info("Scan and fetch complete")
 
                     
     def track_selected_file(self):
         try:
-            
+            logger.info("Starting track routine")      
             self.edit_frame.create_entry()
+            logger.info("EditFrame create entry done")
             if  hasattr(self.edit_frame,"replay_entry") and self.edit_frame.replay_entry != None:
-                
-                    shutil.move(rl_paths.untracked_folder(self.edit_frame.headers[0]),rl_paths.tracked_folder(self.edit_frame.headers[0]))
-                    print "Inserting into tracked replays"
-                    self.tracked_replays.insert(0,self.edit_frame.replay_entry[2],self.edit_frame.replay_entry)
-                    print "insert done"
-                    print "Deleting selected from untracked replays"
-                    self.untracked_replays.delete_selected()
-                    print "delete done"
-                    if self.untracked_replays.size() == 0:
-                        self.edit_frame.clear()
-                        print "Cleared edit frame"
-                    print "\n"
+                logger.info("Create Entry succesfull")
+                src = rl_paths.untracked_folder(self.edit_frame.headers[0])
+                dst = rl_paths.tracked_folder(self.edit_frame.headers[0])
+                shutil.move(src,dst)
+                logger.info("Moved from %s to %s",src,dst)
+                self.tracked_replays.insert(0,self.edit_frame.replay_entry[2],self.edit_frame.replay_entry)
+
+                self.untracked_replays.delete_selected()
+
+                if self.untracked_replays.size() == 0:
+                    self.edit_frame.clear()
+                    logger.info("Cleared edit frame")
+            logger.info("Replay %s now tracked",self.edit_frame.headers[0])
         except sqlite3.IntegrityError,e:
-            print e
+            logger.error("Error during replay insertion")
+            logger.error("Error: %s",e)
+
 
     def replay_display_edit(self,variables):
-        print "Displaying in edit",variables
+        logger.info("Edit now displaying: %s",variables)
         self.edit_frame.display_new(list(variables))
 
     def replay_displayinfo(self,variables):
-        print "Displaying new info",variables
+        logger.info("Info now displaying: %s",variables)
         self.info.display_new(list(variables))
 
     def save(self):
-        #print "Saved"
         self.info.save()
 
     def copy_to_staging(self,variables):
-        print "Copying to staging"
         if not os.path.isfile(rl_paths.demo_folder(variables[1])):
             shutil.copy2(rl_paths.tracked_folder(variables[1]),rl_paths.demo_folder(variables[1]))
-            print "copy to demo"
+            logger.info("Copied %s to demo_folder",variables[1])
 
         if not os.path.isfile(rl_paths.tracked_folder(variables[1])):
             shutil.copy2(rl_paths.demo_folder(variables[1]),rl_paths.tracked_folder(variables[1]))
-            print "Copy to tracked"
+            logger.info("Copied %s to tracked folder",variables[1])
 
         if not os.path.isfile(rl_paths.backup_folder(variables[1])):
             shutil.copy2(rl_paths.demo_folder(variables[1]),rl_paths.backup_folder(variables[1]))
-            print "copy to backup"
+            logger.info("Copied %s to backup folder",variables[1])
 
     def delete_from_staging(self,variables_list):
         for variables in variables_list:
             try:
-                print "Removing: ",variables
                 os.remove(rl_paths.demo_folder(variables[1]))
+                logger.info("Unstaged replay %s",variables[1])
             except WindowsError,e:
-                print e #If there were duplicates in the list somehow we get a can't find error
+                logger.error("Error unstaging file %s ",variables[1])
+                logger.error("Error: %s",e)
+                #If there were duplicates in the list somehow we get a can't find error
 
     def unstage_all(self):
+        logger.info("Unstaging all staged replays")
         if self.staged_list.size() == 0: return
         self.delete_from_staging(self.staged_list.variables)
         self.staged_list.delete(0,self.staged_list.size())
+        logger.info("Unstage all complete")
 
     def filter_replays(self):
+        logger.info("Displaying filter popup")
         pop = FilterPopup( 
             winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()),
             callback=self.fetch_replays)
         pop.title("Filter")
-
-
         
 
