@@ -109,6 +109,7 @@ class FilterPopup(tk.Toplevel):
         "groupfilters":["Group Name"],
         }
     db_translate={"Player":"playername","Date":"date_time","Group Name":"name"}
+    last_filters = {}
     def __init__(self,parent=None,**kw):
         self.callback = kw.pop("callback",None)
         wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
@@ -117,12 +118,13 @@ class FilterPopup(tk.Toplevel):
 
         self.entries = {}
         idx = 0
+        print "Filters last time",FilterPopup.last_filters
         for filtertype, options in self.filter_options.items():             
-            for option in options:
-                print filtertype,option
+            for option in options:              
                 tk.Label(self,text=option).grid(row=idx,column=0)
                 self.entries[option] = (tk.Entry(self))
                 self.entries[option].grid(row=idx,column=1,sticky="we")
+                self.entries[option].insert(0, self.last_filters.get(filtertype,{}).get(self.db_translate.get(option,option),("",""))[1])
                 idx += 1
 
         tk.Button(self,text="Apply",command=self.done).grid(row=idx+1,column=0,columnspan=2,sticky="we")
@@ -131,14 +133,14 @@ class FilterPopup(tk.Toplevel):
 
     def done(self):
         filters = {}
+
         for filtertype, options in self.filter_options.items():
             filters[filtertype] = {}
             for option in options:
                 if self.entries[option].get() != "":
                       filters[filtertype][self.db_translate.get(option,option)] = ("=",self.entries[option].get())
-        # with DB_Manager() as dmann:
-            # replays = dmann.filter_replays(**filters)
-        # print replays
+        print "filters:",filters
+        FilterPopup.last_filters = dict(filters)
         if self.callback:
             self.callback(**filters)
         self.destroy()
@@ -186,10 +188,10 @@ class AddToGroupPopup(tk.Toplevel):
                 g_id = group[0][0]
             try:
                 dmann.add_replay_to_group(self.replay_id, g_id)
+                self.combovalues.append(gname)
+                self.grouplist.insert(gname)
             except sqlite3.IntegrityError,e:
-                pass #Cannot add replay to same group twice.
-            self.grouplist.insert(gname)
-            self.combovalues.append(gname)
+                print "Duplicate group... aborting" #Cannot add replay to same group twice.      
 
     def done(self):
         pass
