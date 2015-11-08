@@ -18,12 +18,16 @@ import threading
 import rl_paths
 import replay_parser
 import logging
+import logging.config
 from logging.handlers import RotatingFileHandler
-
+# handler = RotatingFileHandler("log.log",mode='a',maxBytes=1024*1024*5,backupCount=3,encoding="Utf-8",delay=0)
+# formatter = logging.Formatter("%(asctime)s %(name)s - %(levelname)s: %(message)s")
+# handler.setFormatter(formatter)
+# logging.basicConfig(stream=handler,level=logging.DEBUG)
+logging.config.fileConfig("log.config")
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = RotatingFileHandler("log.log",mode='a',maxBytes=1024*1024*5,backupCount=3,encoding="Utf-8",delay=0)
-logger.addHandler(handler)
+# logger.setLevel(logging.DEBUG)
+# logger.addHandler(handler)
 
 class ReplayManager(tk.Frame):
     def __init__(self,parent, **kw):
@@ -122,11 +126,11 @@ class ReplayManager(tk.Frame):
         with DB_Manager() as mann:
             if replayfilters  or tagfilters or playerfilters or groupfilters:
                 replays = mann.filter_replays(replayfilters,tagfilters,playerfilters,groupfilters)
-                logger.info("Fetched replays from database with parameters %s %s %s %s",
+                logger.debug("Fetched replays from database with parameters %s %s %s %s",
                     replayfilters,tagfilters,playerfilters,groupfilters)
             else:
                 replays = mann.get_all("replays","date_time desc")
-                logger.info("Fetched all replays (paramless)")
+                logger.debug("Fetched all replays (paramless)")
 
         if self.tracked_replays.size() > 0:
             self.tracked_replays.delete(0,self.tracked_replays.size())
@@ -154,6 +158,7 @@ class ReplayManager(tk.Frame):
                     self.demo_scan.append({"path":f,"name":filename,"tracked":True})
                 else:
                     pass
+                logger.debug("Scanning %s resulted in %s",filename,self.demo_scan[-1])
         logger.info("Appended all %s replays",len(l))
 
     def move_new_replays_to_untracked(self):
@@ -168,6 +173,7 @@ class ReplayManager(tk.Frame):
                         shutil.copy2(rl_paths.demo_folder(entry['name']),rl_paths.backup_folder(entry['name'])) #Copy to backup folder
                         logger.info("Backed up replay %s", entry['name'])
                     os.remove(entry["path"]) #Remove old copy
+                    logger.debug("Moved %s to untracked",entry['name'])
                 except Exception, e:
                     logger.error("Error during move of file %s",entry['name'])
                     logger.error("Error was: %s",e)
@@ -192,6 +198,7 @@ class ReplayManager(tk.Frame):
                             elif i+1 == self.staged_list.size():
                                 self.staged_list.insert("end",var[2],var)
                                 break
+                    logger.debug("Inserted staged replay %s",entry['name'])
         logger.info("Inserted total of %s staged replays",count)
         logger.info("Staged files insertion complete")
 
@@ -207,8 +214,10 @@ class ReplayManager(tk.Frame):
             #A discrepancy most probably means the replay was downloaded from somewhere.
             #Correcting the time makes it easier to find it in the replay browser ingame, because it will line up with its staged counterpart
             repTime = time.mktime(datetime.datetime(*map(int,data['header']['Date'].replace(":","-").split("-"))).timetuple())
-            if repTime != os.path.getmtime(path):
+            ftime = os.path.getmtime(path)
+            if repTime != ftime:
                 os.utime(path,(repTime,repTime))
+                logger.info("Changed time of %s to %s from %s",path,repTime,ftime)
 
             time_ = re.sub(":(\d\d)-"," \\1:",data['header']['Date'])
             tdict[f]=time_
@@ -220,6 +229,7 @@ class ReplayManager(tk.Frame):
             filename = os.path.splitext(f)[0]
             fullpath = untracked+"\\"+f
             self.untracked_replays.insert("end","Replay "+str(tdict[f]),(filename,tdict[f],fullpath))
+            logger.debug("Inserted replay %s",f)
         logger.info("Inserted total of %s untracked replays",len(l))
         logger.info("Insertion of untracked complete")
 

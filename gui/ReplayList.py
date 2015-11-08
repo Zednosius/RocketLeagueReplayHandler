@@ -6,11 +6,14 @@ import Tkinter as tk
 import ttk
 import tkFont
 from db_manager import *
-
+import logging
+logger = logging.getLogger(__name__)
+print logger
 
 class ReplayList(tk.Listbox):
 
     def __init__(self, parent, **kw):
+        logger.info("Making replay list")
         self.parent = parent
         tk.Listbox.__init__(self, parent, kw)
         self.insert_callback = None
@@ -26,9 +29,11 @@ class ReplayList(tk.Listbox):
 
         self.bind('<<ListboxSelect>>',self.notify_parent_displayinfo)
         self.variables = []
+        logger.info("Replay list made")
 
     def link(self,otherDropList):
         self.otherDropList = otherDropList
+        logger.info("Linked with other list")
 
     def focus_other(self,e):
         if not hasattr(self,"otherDropList"): return
@@ -53,6 +58,7 @@ class ReplayList(tk.Listbox):
 
     def notify_parent_displayinfo(self, event, useSelection=False):
         if not self.curselection():return "break"
+        logger.info("Notifying parent of clicked replay")
         # print "Notify_Parent_DisplayInfo"
         resolved = False 
         parent = self.winfo_parent()

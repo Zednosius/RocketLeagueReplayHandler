@@ -4,3 +4,4 @@ data/*
 *.db
 build/*
 dist/*
+*.log

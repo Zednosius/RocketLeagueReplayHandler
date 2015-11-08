@@ -7,7 +7,8 @@ import ttk
 import tkFont
 from Popups import *
 from db_manager import *
-
+import logging
+logger = logging.getLogger(__name__)
 
 def tag_popup(taglist, infowidget):
     TagPopup(taglist=taglist,infowidget=infowidget)
@@ -50,7 +51,7 @@ class ReplayInfoFrame(tk.Frame):
         #Remove the first column
         self.table.column("#0",width=0,minwidth=0)
         self.table_insert_values()
-      
+        logger.info("Making table")
 
     def table_insert_values(self):
         # print self.values
