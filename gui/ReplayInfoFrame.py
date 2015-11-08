@@ -98,7 +98,10 @@ class ReplayInfoFrame(tk.Frame):
         #Save old notes
         if len(self.headers) != 0:
             with DB_Manager() as dmann:
-                dmann.update_note(self.id,self.note_body.get("1.0","end-1c"))
+                txt = self.note_body.get("1.0","end-1c")
+                self.notes[0] = (self.id,txt)
+                print "Updating %ss note: %s " %(self.id,txt)
+                dmann.update_note(self.id, txt)
                 self.cached[self.id]["notes"] = [(self.id,self.note_body.get("1.0","end-1c"),)]
             print self.values,self.tags,self.notes,self.groups
             self.cached[self.id]["values"] = list(self.values)
@@ -171,7 +174,6 @@ class ReplayInfoFrame(tk.Frame):
             self.taglist.insert(tag,time)
         self.grouplist.delete(0,"end")
         for group in self.groups:
-            print "inserting group",group
             if type(group) == tuple:
                 group = group[0]
             self.grouplist.insert(group)
@@ -267,7 +269,6 @@ class TagList(tk.Frame):
 class GroupList(TagList):
 
     def insert(self,groupname):
-        print "inserting",groupname
         self.list.append(groupname)
         self.list_body.insert("end",groupname)
 
