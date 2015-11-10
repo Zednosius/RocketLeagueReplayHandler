@@ -249,7 +249,7 @@ class TagList(tk.Frame):
         self.list_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
         self.list_body.bind("<MouseWheel>",lambda event : self.list_body.yview("scroll",-event.delta/120,"units"))
         self.scrollbar.config(command=self.list_body.yview)
-        self.addbutton = tk.Button(self,text=self.add_text,command=lambda taglist=self,parent=parent : self.callback(taglist,parent))
+        self.addbutton = ttk.Button(self,text=self.add_text,command=lambda taglist=self,parent=parent : self.callback(taglist,parent))
 
         self.addbutton.grid(row=1,columnspan=2,stick="WE")#.pack(side=tk.BOTTOM,fill=tk.X,expand=1)
         self.scrollbar.grid(row=0,column=1,sticky="SN")#.pack(side=tk.RIGHT, fill=tk.Y)
