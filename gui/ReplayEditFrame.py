@@ -32,7 +32,7 @@ class ReplayEditFrame(tk.Frame):
         self.date       = tk.Entry(self)
         self.table      = ttk.Treeview(self)
 
-        self.add_empty_row_button = tk.Button(self,text="Add row",command=self.add_empty_row)
+        self.add_empty_row_button = ttk.Button(self,text="Add row",command=self.add_empty_row)
         namelabel = tk.Label(self,text="Name")
         maplabel  = tk.Label(self,text="Map name")
         datelabel = tk.Label(self,text="Date")
