@@ -18,6 +18,7 @@ class TagPopup(tk.Toplevel):
         self.infowidget = kw.pop("infowidget")
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
+        self.focus_set()
         self.replay_id = self.infowidget.id
         self.title("Add tag for "+self.infowidget.headers[0])
         
@@ -72,6 +73,7 @@ class TableRowEditPopup(tk.Toplevel):
 
 
         self.grab_set()
+        self.focus_set()
         label_col=0
         entry_col=1
         self.entries = []
@@ -129,6 +131,7 @@ class FilterPopup(tk.Toplevel):
         wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
+        self.focus_set()
 
         self.entries = {}
         idx = 0
@@ -173,7 +176,7 @@ class AddToGroupPopup(tk.Toplevel):
 
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
-
+        self.focus_set()
         
         with DB_Manager() as dmann:
             groups = dmann.get_all("groups")
@@ -227,6 +230,7 @@ class ConfirmPopup(tk.Toplevel):
         wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
+        self.focus_set()
         self.label = tk.Label(self,text=self.text)
         self.yesButton = ttk.Button(self,text="Yes",command=self.confirm)
         self.noButton = ttk.Button(self,text="No",command=self.abort)
@@ -234,9 +238,11 @@ class ConfirmPopup(tk.Toplevel):
         self.label.grid(row=0,column=0,columnspan=3)
         self.yesButton.grid(row=1,column=0)
         self.noButton.grid(row=1,column=2)
+        logger.info("Confirm popup created")
 
     def confirm(self):
         if self.callback:
+            logger.info("Calling callback")
             self.callback()
             self.destroy()
 
