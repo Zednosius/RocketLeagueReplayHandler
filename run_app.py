@@ -13,7 +13,6 @@ import imp
 
 import logging
 logger = logging.getLogger("root")
-print logger
 
 
 def main_is_frozen():

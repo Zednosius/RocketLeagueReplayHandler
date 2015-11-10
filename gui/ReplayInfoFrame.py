@@ -53,7 +53,7 @@ class ReplayInfoFrame(tk.Frame):
         #Remove the first column
         self.table.column("#0",width=0,minwidth=0)
         self.table_insert_values()
-        logger.info("Making table")
+        logger.info("Made table")
 
     def table_insert_values(self):
         # print self.values
@@ -103,10 +103,11 @@ class ReplayInfoFrame(tk.Frame):
             with DB_Manager() as dmann:
                 txt = self.note_body.get("1.0","end-1c")
                 self.notes[0] = (self.id,txt)
-                print "Updating %ss note: %s " %(self.id,txt)
+                logger.debug("Updating %ss note: %s " ,self.id,txt)
                 dmann.update_note(self.id, txt)
                 self.cached[self.id]["notes"] = [(self.id,self.note_body.get("1.0","end-1c"),)]
-            print self.values,self.tags,self.notes,self.groups
+            logger.debug("caching: val:%s tags:%s note:%s groups:%s",self.values,self.tags,self.notes,self.groups)
+
             self.cached[self.id]["values"] = list(self.values)
             self.cached[self.id]["tags"] = [(self.id,)+v for v in self.taglist.list]
             self.cached[self.id]["notes"] = list(self.notes)
@@ -141,8 +142,7 @@ class ReplayInfoFrame(tk.Frame):
             self.tags = self.cached[self.id]["tags"]
             self.notes = self.cached[self.id]["notes"]
             self.groups = self.cached[self.id]["groups"]
-            print "Cached groups:",self.groups
-            # print "Fetched cached!"
+            logger.info("Loaded data for %s from cache",self.id)
             return 
 
         with DB_Manager() as mann:
@@ -150,7 +150,7 @@ class ReplayInfoFrame(tk.Frame):
             self.tags   = mann.get_all_where("tags",id=("=",self.id))
             self.notes  = mann.get_all_where("notes",id=("=",self.id))
             self.groups = mann.get_groups(self.id)
-            print "groups: ",self.groups
+            logger.info("Loaded data for %s from db",self.id)
 
             
         # print "cached: ",self.cached[self.id]
@@ -167,6 +167,7 @@ class ReplayInfoFrame(tk.Frame):
 
     def init(self):
         """Construct self given values, self.headers need to be set so that associated data can be found."""
+        logger.info("Beginning initialization")
         self.load_values_from_db()
         self.populate_headers()
         self.table.configure(height=len(self.values) if len(self.values) > 2 else 4)
@@ -175,15 +176,18 @@ class ReplayInfoFrame(tk.Frame):
         self.taglist.delete(0,"end")
         for (_,tag,time) in self.tags:
             self.taglist.insert(tag,time)
+            logger.debug("Inserted tag %s@%s",tag,time)
         self.grouplist.delete(0,"end")
+
         for group in self.groups:
             if type(group) == tuple:
                 group = group[0]
             self.grouplist.insert(group)
+            logger.debug("Inserted group %s",group)
 
         self.note_body.delete("1.0","end")
         self.note_body.insert("end",self.notes[0][1] if self.notes else "")
-
+        logger.info("Initialization complete")
 
     def __init__(self,parent,**kw):
         self.headervars = []

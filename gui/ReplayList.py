@@ -8,7 +8,6 @@ import tkFont
 from db_manager import *
 import logging
 logger = logging.getLogger(__name__)
-print logger
 
 class ReplayList(tk.Listbox):
 

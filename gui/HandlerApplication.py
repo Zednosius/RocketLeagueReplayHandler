@@ -20,14 +20,10 @@ import replay_parser
 import logging
 import logging.config
 from logging.handlers import RotatingFileHandler
-# handler = RotatingFileHandler("log.log",mode='a',maxBytes=1024*1024*5,backupCount=3,encoding="Utf-8",delay=0)
-# formatter = logging.Formatter("%(asctime)s %(name)s - %(levelname)s: %(message)s")
-# handler.setFormatter(formatter)
-# logging.basicConfig(stream=handler,level=logging.DEBUG)
+
 logging.config.fileConfig("log.config")
 logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
-# logger.addHandler(handler)
+
 
 
 

@@ -230,9 +230,9 @@ class ReplayEditFrame(tk.Frame):
             self.table.set(row_selection,heading,vals[idx+1])
         idx = self.table.index(row_selection)
         if idx < len(self.values):
-            print "Replacing %s with %s" %(self.values[idx],vals)
+            logger.debug("Replacing %s with %s",self.values[idx],vals)
             self.values[idx] = vals
 
         else:
-            print "Appending",vals
+            logger.info("appending %s",vals)
             self.values.append(vals) 
