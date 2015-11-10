@@ -142,8 +142,10 @@ class ReplayList(tk.Listbox):
 
     def set_insert_callback(self,callback):
         self.insert_callback = callback
+
     def set_delete_callback(self,callback):
         self.delete_callback = callback
+
     def get_variables(self,index):
         return self.variables[index]
 
@@ -163,9 +165,10 @@ class ReplayList(tk.Listbox):
                 self.variables.pop(i-1)
 
     def delete_selected(self):
-        tk.Listbox.delete(self,self.selected_item)
-        logger.debug("Deleting selected variables %s",self.variables[self.selected_item])
-        self.variables.pop(self.selected_item)
+        # tk.Listbox.delete(self,self.selected_item)
+        # logger.debug("Deleting selected variables %s",self.variables[self.selected_item])
+        # self.variables.pop(self.selected_item)
+        self.delete(self.selected_item)
         
         if self.selected_item >= self.size():
             self.selected_item -= 1
