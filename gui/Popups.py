@@ -8,15 +8,19 @@ import tkFont
 from db_manager import *
 import re
 
+import logging
+logger = logging.getLogger(__name__)
+
 class TagPopup(tk.Toplevel):
     def __init__(self,parent=None,**kw):
+        logger.info("Made tagpopup")
         self.taglist = kw.pop("taglist")
         self.infowidget = kw.pop("infowidget")
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
         self.replay_id = self.infowidget.id
         self.title("Add tag for "+self.infowidget.headers[0])
-        print "Id is: ",self.replay_id 
+        
         namelabel = tk.Label(self,text="Tag name")
         timelabel = tk.Label(self,text="Replaytime (mm:ss)")
 
@@ -38,23 +42,29 @@ class TagPopup(tk.Toplevel):
         self.grid_columnconfigure(1,weight=1)
         self.geometry("+%d+%d" % (self.infowidget.winfo_rootx()+50,
                                   self.infowidget.winfo_rooty()+50))
+        logger.info("Tag popup created")
 
     def tag_add(self):
+        logger.info("Adding tag")
         tname = self.tagname.get()
         tstamp = self.tagstamp.get()
         with DB_Manager() as dmann:
             dmann.add_tag(self.replay_id,tname,tstamp)
             self.taglist.insert(tname,tstamp)
             self.taglist.see("end")
+            logger.debug("Added tag %s @ %s",tname,tstamp)
         self.tagname.delete(0,"end")
         self.tagstamp.delete(0,"end")
+        logger.ifno("Cleared entries")
         self.tagname.focus_set()
     def close(self):
         pass
 
 class TableRowEditPopup(tk.Toplevel):
     def __init__(self,parent=None,**kw):
+        logger.info("Making row edit popup")
         self.row_values = kw.pop("row_values",[])
+        logger.debug("Row values: %s",self.row_values)
         wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
         self.done_callback = kw.pop("done_callback",None)
         tk.Toplevel.__init__(self,parent,**kw)
@@ -81,10 +91,13 @@ class TableRowEditPopup(tk.Toplevel):
         self.entries[0].focus_set()    
         self.geometry("+%d+%d" % (wroot_x+50,
                                   wroot_y+50))
+        logger.info("Popup created")
+
     def valid(self):
-        print self.entries[0].get(),self.entries[1].get()
+        logger.info("Check if valid")
         valid = len(self.entries[0].get()) > 0
         valid &= re.match("^\d$",self.entries[1].get()) != None
+        logger.info("Input valid status: %s",valid)
         return valid
 
     def set_done_callback(self,callback):
@@ -95,7 +108,7 @@ class TableRowEditPopup(tk.Toplevel):
             self.notif.set("Invalid entries")
             return
         self.final_values = (None,)+tuple(map(lambda ent: ent.get() , self.entries))
-        print "Final row values: ",self.final_values
+        logger.debug("Row values edited to: %s",self.final_values)
         if self.done_callback:
             self.done_callback(self.final_values)
         self.destroy()
@@ -111,6 +124,7 @@ class FilterPopup(tk.Toplevel):
     db_translate={"Player":"playername","Date":"date_time","Group Name":"name"}
     last_filters = {}
     def __init__(self,parent=None,**kw):
+        logger.info("Making filter popup")
         self.callback = kw.pop("callback",None)
         wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
         tk.Toplevel.__init__(self,parent,**kw)
@@ -130,8 +144,10 @@ class FilterPopup(tk.Toplevel):
         tk.Button(self,text="Apply",command=self.done).grid(row=idx+1,column=0,columnspan=2,sticky="we")
         self.grid_columnconfigure(1,weight=1)
         self.geometry("+%d+%d" % (wroot_x+50, wroot_y+50))
+        logger.info("Filter popup done")
 
     def done(self):
+        logger.info("Clicked done on filterpopup")
         filters = {}
 
         for filtertype, options in self.filter_options.items():
@@ -139,15 +155,17 @@ class FilterPopup(tk.Toplevel):
             for option in options:
                 if self.entries[option].get() != "":
                       filters[filtertype][self.db_translate.get(option,option)] = ("=",self.entries[option].get())
-        print "filters:",filters
+        logger.debug("Filters chosen were: %s ",filters)
         FilterPopup.last_filters = dict(filters)
         if self.callback:
+            logger.info("calling callback with filters")
             self.callback(**filters)
         self.destroy()
 
 class AddToGroupPopup(tk.Toplevel):
 
     def __init__(self,parent=None,**kw):
+        logger.info("Making group popup")
         self.callback = kw.pop("callback",None)
         wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
         self.grouplist = kw.pop("grouplist",[])
@@ -159,8 +177,8 @@ class AddToGroupPopup(tk.Toplevel):
         
         with DB_Manager() as dmann:
             groups = dmann.get_all("groups")
-        print groups
         self.combovalues = [group[1] for group in groups]
+        logger.debug("Groups already added: %s",groups)
         self.label = tk.Label(self,text="Groups")
         self.combobox = ttk.Combobox(self,values=self.combovalues)
         self.addbutton = tk.Button(self,text="Add",command=self.add)
@@ -172,26 +190,31 @@ class AddToGroupPopup(tk.Toplevel):
 
 
         self.geometry("+%d+%d" % (wroot_x+50, wroot_y+50))
+        logger.info("Group popup created")
 
     def add(self):
-        print "adding ",self.combobox.get()
+        logger.info("Adding to group: %s",self.combobox.get())
         gname  =self.combobox.get()
         with DB_Manager() as dmann:
-            print "selected groupname: ",gname
-            print dmann.get_all("groups")
+
             group = dmann.get_all_where("groups",name=("=",unicode(gname)))
-            print "db_group: ",group
+            
             if not group:
+                logger.info("Group not found; Adding to database")
                 c = dmann.add_group(gname)
                 g_id = c.lastrowid
             else:
+                logger.info("Group found in database")
                 g_id = group[0][0]
             try:
                 dmann.add_replay_to_group(self.replay_id, g_id)
+                logger.info("Adding replay to group")
                 self.combovalues.append(gname)
                 self.grouplist.insert(gname)
+                logger.info("Inserted to combobox and list")
             except sqlite3.IntegrityError,e:
+                logger.info("Replay was already a member of group: %s",gname)
                 print "Duplicate group... aborting" #Cannot add replay to same group twice.      
-
+        logger.info("Add to group done")
     def done(self):
         pass
