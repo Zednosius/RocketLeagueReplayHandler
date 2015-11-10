@@ -38,8 +38,8 @@ class DB_Manager():
         return self.conn.execute("SELECT 1 from replays WHERE filename=?",(filename,)).fetchone()
 
     def add_team(self,ID,player_name,teamNum,goals=None,saves=None,shots=None,assists=None,score=None):
-        self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",(ID,player_name,teamNum,goals,saves,shots,assists,score))
-        return self.dprint("Inserted %s %s %s %s %s %s %s %s into teams",ID,player_name,teamNum,goals,saves,shots,assists,score)
+        self.dprint("Inserted %s %s %s %s %s %s %s %s into teams",ID,player_name,teamNum,goals,saves,shots,assists,score)
+        return self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",(ID,player_name,teamNum,goals,saves,shots,assists,score))
 
     def add_many_team(self,list_of_tuples):
         return self.conn.executemany("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",list_of_tuples)
@@ -69,8 +69,8 @@ class DB_Manager():
         return self.conn.execute("INSERT INTO group_members (g_id,id) VALUES (?, ?);",(gID,ID))
 
     def get_groups(self,ID):
-        return self.conn.execute("SELECT G.name FROM group_members GM JOIN groups G on GM.g_id=G.g_id WHERE GM.id=?",(ID,)).fetchall()
         self.dprint("Selected names from group with ID %s",ID)
+        return self.conn.execute("SELECT G.name FROM group_members GM JOIN groups G on GM.g_id=G.g_id WHERE GM.id=?",(ID,)).fetchall()
 
     def get_all(self, table,orderBy=None):
         """Get all the rows from specified table"""
