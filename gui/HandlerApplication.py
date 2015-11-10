@@ -326,6 +326,7 @@ class ReplayManager(tk.Frame):
         pop.title("Filter")
 
     def delete_tracked_replay_popup(self):
+        logger.info("Asking about deletion of replay")
         pop = ConfirmPopup(text="Are you sure you want to delete this replay from the database?\nThis is permanent and your original data can not be recovered", 
             winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()),
             callback=self.delete_tracked_replay
@@ -334,8 +335,12 @@ class ReplayManager(tk.Frame):
 
     def delete_tracked_replay(self):
         varlist = self.tracked_replays.get_variables(self.tracked_replays.selected_item)
+        self.tracked_replays.delete_selected()
         logger.debug("DELETING: %s",varlist)
-        
-        print "Deleting",varlist
+        with DB_Manager() as dmann:
+            dmann.delete_replay(varlist[0])
+        shutil.move(rl_paths.tracked_folder(varlist[1]),rl_paths.untracked_folder(varlist[1]))
+        logger.info("Deleted replay")
+
         
 
