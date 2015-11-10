@@ -29,7 +29,7 @@ class TagPopup(tk.Toplevel):
         self.tagstamp = tk.Entry(self)
         self.tagstamp.bind("<Return>",lambda e : self.tag_add())
         self.tagname.focus_set()
-        addbutton = tk.Button(self,text="Add",command=self.tag_add)
+        addbutton = ttk.Button(self,text="Add",command=self.tag_add)
 
         namelabel.grid(row=0,column=0,sticky="NSWE")
         timelabel.grid(row=0,column=1,sticky="NSWE")
@@ -84,8 +84,8 @@ class TableRowEditPopup(tk.Toplevel):
             self.entries[i].grid(row=i,column=entry_col,sticky="we")
             if self.row_values and i < len(self.row_values)-1: #Skip the ID which is the first elem in row_values
                 self.entries[i].insert("end",self.row_values[i+1])
-
-        tk.Button(self,text="Done",command=self.done).grid(row=i+1,column=0,columnspan=2,sticky="we")
+                logger.debug("Inserted on %s: %s",i,self.row_values[i+1])
+        ttk.Button(self,text="Done",command=self.done).grid(row=i+1,column=0,columnspan=2,sticky="we")
         tk.Label(self,textvariable=self.notif).grid(row=i+2,column=0,columnspan=2,sticky="we")
         
         self.entries[0].focus_set()    
@@ -141,7 +141,7 @@ class FilterPopup(tk.Toplevel):
                 self.entries[option].insert(0, self.last_filters.get(filtertype,{}).get(self.db_translate.get(option,option),("",""))[1])
                 idx += 1
 
-        tk.Button(self,text="Apply",command=self.done).grid(row=idx+1,column=0,columnspan=2,sticky="we")
+        ttk.Button(self,text="Apply",command=self.done).grid(row=idx+1,column=0,columnspan=2,sticky="we")
         self.grid_columnconfigure(1,weight=1)
         self.geometry("+%d+%d" % (wroot_x+50, wroot_y+50))
         logger.info("Filter popup done")
@@ -181,7 +181,7 @@ class AddToGroupPopup(tk.Toplevel):
         logger.debug("Groups already added: %s",groups)
         self.label = tk.Label(self,text="Groups")
         self.combobox = ttk.Combobox(self,values=self.combovalues)
-        self.addbutton = tk.Button(self,text="Add",command=self.add)
+        self.addbutton = ttk.Button(self,text="Add",command=self.add)
 
         self.label.grid(row=0,column=0,sticky="we")
         self.combobox.grid(row=1,column=0,sticky="we")
