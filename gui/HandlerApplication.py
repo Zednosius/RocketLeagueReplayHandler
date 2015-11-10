@@ -29,6 +29,9 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 # logger.addHandler(handler)
 
+
+
+
 class ReplayManager(tk.Frame):
     def __init__(self,parent, **kw):
         logger.info("Creating Manager")
@@ -58,6 +61,7 @@ class ReplayManager(tk.Frame):
         scrollbar = ttk.Scrollbar(f, orient=tk.VERTICAL)
         self.tracked_replays = ReplayList(f,yscrollcommand=scrollbar.set)
         self.tracked_replays.bind("<MouseWheel>",lambda event : self.tracked_replays.yview("scroll",-event.delta/120,"units"))
+        self.tracked_replays.bind("<Delete>", lambda e : self.delete_tracked_replay_popup())
         scrollbar.config(command=self.tracked_replays.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.tracked_replays.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
@@ -320,5 +324,18 @@ class ReplayManager(tk.Frame):
             winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()),
             callback=self.fetch_replays)
         pop.title("Filter")
+
+    def delete_tracked_replay_popup(self):
+        pop = ConfirmPopup(text="Are you sure you want to delete this replay from the database?\nThis is permanent and your original data can not be recovered", 
+            winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()),
+            callback=self.delete_tracked_replay
+            )
+        pop.title("Delete")
+
+    def delete_tracked_replay(self):
+        varlist = self.tracked_replays.get_variables(self.tracked_replays.selected_item)
+        logger.debug("DELETING: %s",varlist)
+        
+        print "Deleting",varlist
         
 
