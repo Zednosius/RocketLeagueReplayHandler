@@ -72,6 +72,12 @@ class DB_Manager():
         self.dprint("Selected names from group with ID %s",ID)
         return self.conn.execute("SELECT G.name FROM group_members GM JOIN groups G on GM.g_id=G.g_id WHERE GM.id=?",(ID,)).fetchall()
 
+    def delete_replay(self,ID):
+        return self.conn.execute("DELETE FROM replays WHERE id=?",ID)
+
+    def delete_tag(self,ID,tagname,timestamp):
+        return self.conn.execute("DELETE FROM tags WHERE id=? AND tagname=? AND timestamp=?",ID,tagname,timestamp)
+
     def get_all(self, table,orderBy=None):
         """Get all the rows from specified table"""
         table = clean(table)
