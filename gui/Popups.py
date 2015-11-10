@@ -218,3 +218,27 @@ class AddToGroupPopup(tk.Toplevel):
         logger.info("Add to group done")
     def done(self):
         pass
+
+class ConfirmPopup(tk.Toplevel):
+    def __init__(self,parent=None,**kw):
+        logger.info("Making Confirm popup")
+        self.callback = kw.pop("callback",None)
+        self.text = kw.pop("text","")
+        wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
+        tk.Toplevel.__init__(self,parent,**kw)
+        self.grab_set()
+        self.label = tk.Label(self,text=self.text)
+        self.yesButton = ttk.Button(self,text="Yes",command=self.confirm)
+        self.noButton = ttk.Button(self,text="No",command=self.abort)
+
+        self.label.grid(row=0,column=0,columnspan=3)
+        self.yesButton.grid(row=1,column=0)
+        self.noButton.grid(row=1,column=2)
+
+    def confirm(self):
+        if self.callback:
+            self.callback()
+            self.destroy()
+
+    def abort(self):
+        self.destroy()
