@@ -11,10 +11,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 def tag_popup(taglist, infowidget):
-    TagPopup(taglist=taglist,infowidget=infowidget)
+    if hasattr(infowidget,"id"):
+        TagPopup(taglist=taglist,infowidget=infowidget)
 
 def group_popup(grouplist,infowidget):
-    AddToGroupPopup(grouplist=grouplist, replay_id=infowidget.id, winfo_rootc=(infowidget.winfo_rootx(),infowidget.winfo_rooty()))
+    if hasattr(infowidget,"id"):
+        AddToGroupPopup(grouplist=grouplist, replay_id=infowidget.id, winfo_rootc=(infowidget.winfo_rootx(),infowidget.winfo_rooty()))
 
 #http://stackoverflow.com/questions/1966929/tk-treeview-column-sort
 def treeview_sort_column(tv, col, reverse, cast):
