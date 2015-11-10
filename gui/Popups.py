@@ -55,7 +55,7 @@ class TagPopup(tk.Toplevel):
             logger.debug("Added tag %s @ %s",tname,tstamp)
         self.tagname.delete(0,"end")
         self.tagstamp.delete(0,"end")
-        logger.ifno("Cleared entries")
+        logger.info("Cleared entries")
         self.tagname.focus_set()
     def close(self):
         pass
@@ -128,7 +128,7 @@ class FilterPopup(tk.Toplevel):
         self.callback = kw.pop("callback",None)
         wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
         tk.Toplevel.__init__(self,parent,**kw)
-
+        self.grab_set()
 
         self.entries = {}
         idx = 0
@@ -172,7 +172,7 @@ class AddToGroupPopup(tk.Toplevel):
         self.replay_id = kw.pop("replay_id",-1)
 
         tk.Toplevel.__init__(self,parent,**kw)
-
+        self.grab_set()
 
         
         with DB_Manager() as dmann:
