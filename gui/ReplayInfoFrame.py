@@ -215,7 +215,7 @@ class ReplayInfoFrame(tk.Frame):
         self.grouplist.grid(row=0,column=2,rowspan=2,sticky="NSWE")
 
         self.note_frame = tk.Frame(self)
-        scrollbar = tk.Scrollbar(self.note_frame)
+        scrollbar = ttk.Scrollbar(self.note_frame)
         self.note_body= tk.Text(self.note_frame,height=4,width=30,maxundo=15,undo=15)
         self.note_body.bind("<Control-A>", lambda e: self.note_select_all())
         self.note_body.bind("<Control-a>", lambda e: self.note_select_all())
@@ -245,7 +245,7 @@ class TagList(tk.Frame):
         self.list = []
         tk.Frame.__init__(self,parent,kw)
         
-        self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
+        self.scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL)
         self.list_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
         self.list_body.bind("<MouseWheel>",lambda event : self.list_body.yview("scroll",-event.delta/120,"units"))
         self.scrollbar.config(command=self.list_body.yview)
