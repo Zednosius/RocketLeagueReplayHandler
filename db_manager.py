@@ -6,7 +6,8 @@
 import sqlite3
 import sys
 import os
-
+import logging
+logger = logging.getLogger(__name__)
 
 def clean(string):
     return ''.join(c for c in string if c.isalnum())
@@ -31,48 +32,49 @@ class DB_Manager():
         self.debug = debug
 
     def add_replay(self, filename, name, mapname, date_time):
-        self.dprint("Inserted %s %s %s %s into replays ",filename,name,mapname,date_time)
+        logger.info("Inserted %s %s %s %s into replays ",filename,name,mapname,date_time)
         return self.conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?, ?, ?, ?);", (filename, name, mapname,date_time))
             
     def replay_exists(self,filename):
         return self.conn.execute("SELECT 1 from replays WHERE filename=?",(filename,)).fetchone()
 
     def add_team(self,ID,player_name,teamNum,goals=None,saves=None,shots=None,assists=None,score=None):
-        self.dprint("Inserted %s %s %s %s %s %s %s %s into teams",ID,player_name,teamNum,goals,saves,shots,assists,score)
+        logger.info("Inserted %s %s %s %s %s %s %s %s into teams",ID,player_name,teamNum,goals,saves,shots,assists,score)
         return self.conn.execute("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",(ID,player_name,teamNum,goals,saves,shots,assists,score))
 
     def add_many_team(self,list_of_tuples):
         return self.conn.executemany("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",list_of_tuples)
 
     def add_tag(self,ID,tagname,timestamp):
-        self.dprint("Inserted %s %s %s into tags",ID,tagname,timestamp)
+        logger.info("Inserted %s %s %s into tags",ID,tagname,timestamp)
         return self.conn.execute("INSERT INTO tags VALUES (?, ?, ?);",(ID,tagname,timestamp))
 
     def add_match_data(self,ID,teamNum,goals,saves):
-        self.dprint("Inserted %s %s %s %s into match_data", ID,teamNum,goals,saves)
+        logger.info("Inserted %s %s %s %s into match_data", ID,teamNum,goals,saves)
         return self.conn.execute("INSERT INTO match_data VALUES (?, ?, ?, ?);",(ID,teamNum,goals,saves))
 
     def add_note(self, ID, note):
-        self.dprint("Inserted %s %s into notes",ID,note)
+        logger.info("Inserted %s %s into notes",ID,note)
         return self.conn.execute("INSERT INTO notes VALUES (?, ?);",(ID,note))
 
     def update_note(self,ID,note):
-        self.dprint("Updated note %s with text '%s'",ID,note)
+        logger.info("Updated note %s with text '%s'",ID,note)
         return self.conn.execute("UPDATE notes SET note=? WHERE id=?",(note,ID))
 
     def add_group(self, group_name):
-        self.dprint("Inserted %s into groups",group_name)
+        logger.info("Inserted %s into groups",group_name)
         return self.conn.execute("INSERT INTO groups (name) VALUES (?);", (group_name,))
 
     def add_replay_to_group(self, ID, gID):
-        self.dprint("Inserted %s %s into group_members",ID,gID)
+        logger.info("Inserted %s %s into group_members",ID,gID)
         return self.conn.execute("INSERT INTO group_members (g_id,id) VALUES (?, ?);",(gID,ID))
 
     def get_groups(self,ID):
-        self.dprint("Selected names from group with ID %s",ID)
+        logger.info("Selected names from group with ID %s",ID)
         return self.conn.execute("SELECT G.name FROM group_members GM JOIN groups G on GM.g_id=G.g_id WHERE GM.id=?",(ID,)).fetchall()
 
     def delete_replay(self,ID):
+        logger.info("DELETING REPLAY: %s",ID)
         return self.conn.execute("DELETE FROM replays WHERE id=?",(ID,))
 
     def delete_tag(self,ID,tagname,timestamp):
@@ -84,7 +86,7 @@ class DB_Manager():
         query = "SELECT * FROM "+table
         if orderBy:
             query += " ORDER BY "+orderBy
-        self.dprint(query)
+        logger.debug(query)
         return self.conn.execute(query).fetchall()
 
     def get_all_where(self,table,**kw):
@@ -100,10 +102,10 @@ class DB_Manager():
             if(type(kw[k][1]) == str):
                 kw[k] = (kw[k][0],clean(kw[k][1]))
 
-        self.dprint("%s",kw)
+        logger.debug("%s",kw)
         where_clause = " AND ".join([" %s %s :%s" % (key,kw[key][0],key) for key in kw.keys()])
         kw = {k:v[1] for (k,v) in kw.items()}
-        self.dprint("SELECT * FROM "+table+" WHERE "+where_clause)
+        logger.info("SELECT * FROM "+table+" WHERE "+where_clause)
         # print "allw kws: ",kw
         return self.conn.execute("SELECT * FROM "+table+" WHERE "+where_clause,kw).fetchall()
 
@@ -132,10 +134,10 @@ class DB_Manager():
             query += " AND EXISTS("+group_select+")"
 
         kw = combine_dicts(replayfilters,tagfilters,playerfilters,groupfilters)
-        print "keys: ",kw
-        kw = {k:v[1] for (k,v) in kw.items()}
-        print "query:",query,"kws:",kw
 
+        kw = {k:v[1] for (k,v) in kw.items()}
+
+        logger.debug("query: %s kws: %s ",query,kw)
         return self.conn.execute(query,kw).fetchall()
 
         "SELECT * FROM replays R WHERE <replayfilters>  \
@@ -151,13 +153,13 @@ class DB_Manager():
         return self
 
     def __exit__(self ,type_, value, traceback):
-        self.dprint("with __exit__ values: %s %s %s", type_,value,traceback)
+        logger.info("with __exit__ values: %s %s %s", type_,value,traceback)
         if type_ or traceback:
             self.conn.rollback()
-            self.dprint("Rolled back")
+            logger.info("Rolled back")
         else:
             self.conn.commit()
-            self.dprint("Committed!")
+            logger.info("Committed!")
         self.close()
 
     def get_where_clause(self,table_alias,kw):
