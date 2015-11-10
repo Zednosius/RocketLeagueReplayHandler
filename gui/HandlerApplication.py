@@ -49,13 +49,13 @@ class ReplayManager(tk.Frame):
     def start_browse_mode(self,frame):
         logger.info("Creating browse tab")
         tk.Label(frame,text="Replays").grid(row=0,column=0,sticky="NS")
-        tk.Button(frame,text="Filter", command=self.filter_replays).grid(row=2,column=0,sticky="WE")
+        ttk.Button(frame,text="Filter", command=self.filter_replays).grid(row=2,column=0,sticky="WE")
         tk.Label(frame,text="Staged").grid(row=0,column=2,sticky="NS")
-        tk.Button(frame,text="Unstage",command=self.unstage_all).grid(row=2,column=2,sticky="WE")
+        ttk.Button(frame,text="Unstage",command=self.unstage_all).grid(row=2,column=2,sticky="WE")
         
         f  = tk.Frame(frame)
         f2 = tk.Frame(frame)
-        scrollbar = tk.Scrollbar(f, orient=tk.VERTICAL)
+        scrollbar = ttk.Scrollbar(f, orient=tk.VERTICAL)
         self.tracked_replays = ReplayList(f,yscrollcommand=scrollbar.set)
         self.tracked_replays.bind("<MouseWheel>",lambda event : self.tracked_replays.yview("scroll",-event.delta/120,"units"))
         scrollbar.config(command=self.tracked_replays.yview)
@@ -64,7 +64,7 @@ class ReplayManager(tk.Frame):
         self.fetch_replays()
 
         
-        scrollbar2 = tk.Scrollbar(f2, orient=tk.VERTICAL)
+        scrollbar2 = ttk.Scrollbar(f2, orient=tk.VERTICAL)
         self.staged_list = ReplayList(f2,yscrollcommand=scrollbar2.set)
         self.staged_list.bind("<MouseWheel>",lambda event : self.staged_list.yview("scroll",-event.delta/120,"units"))
         scrollbar2.config(command=self.staged_list.yview)
@@ -98,7 +98,7 @@ class ReplayManager(tk.Frame):
         tk.Label(frame,text="Untracked Replays").grid(row=0,column=0,sticky="NSWE")
         frame.replay_displayinfo = self.replay_display_edit
         f  = tk.Frame(frame)
-        scrollbar = tk.Scrollbar(f, orient=tk.VERTICAL)
+        scrollbar = ttk.Scrollbar(f, orient=tk.VERTICAL)
         self.untracked_replays = ReplayList(f,yscrollcommand=scrollbar.set)
         self.untracked_replays.bind("<MouseWheel>",lambda event : self.untracked_replays.yview("scroll",-event.delta/120,"units"))
         scrollbar.config(command=self.untracked_replays.yview)
@@ -111,8 +111,8 @@ class ReplayManager(tk.Frame):
 
         self.edit_frame = ReplayEditFrame(frame)
         self.edit_frame.grid(row=1,column=1,sticky="NWSE")
-        tk.Button(frame,text="rescan",command=self.scan_and_fetch_untracked).grid(row=2,column=0,sticky="WE")
-        self.create_entry_button = tk.Button(frame,text="Track", command=self.track_selected_file)
+        ttk.Button(frame,text="rescan",command=self.scan_and_fetch_untracked).grid(row=2,column=0,sticky="WE")
+        self.create_entry_button = ttk.Button(frame,text="Track", command=self.track_selected_file)
         self.create_entry_button.grid(row=2,column=1,sticky="WE")
 
         frame.grid_rowconfigure(1,weight=1)
@@ -249,6 +249,7 @@ class ReplayManager(tk.Frame):
 
                     
     def track_selected_file(self):
+        if not hasattr(self.edit_frame,'headers'): return
         try:
             logger.info("Starting track routine")      
             self.edit_frame.create_entry()
