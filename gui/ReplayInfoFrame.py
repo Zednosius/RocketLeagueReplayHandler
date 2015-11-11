@@ -97,6 +97,18 @@ class ReplayInfoFrame(tk.Frame):
         self.use_headers(headers)
         self.init()
 
+    def clear(self):
+        self.table.delete(*self.table.get_children())
+        self.taglist.delete(0,"end")
+        self.grouplist.delete(0,"end")
+        self.note_body.delete("1.0","end")
+        for headervar in self.headervars:
+            headervar.set("")
+        self.replay_entry = None
+        self.headers = []
+        self.values = []
+        logger.info("Cleared table")
+
     def save(self):
         #Save old notes
         if len(self.headers) != 0:
