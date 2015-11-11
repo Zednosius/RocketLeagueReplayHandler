@@ -94,5 +94,5 @@ To fully delete a replay, select in the untracked replay list and press the dele
 
 
 
-License
+# License #
 See LICENSE
