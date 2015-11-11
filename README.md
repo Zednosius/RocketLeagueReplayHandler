@@ -40,7 +40,7 @@ An export and import system to enable sharing of replays together with your data
 
 **The RLRH will shuffle around your replays in the rocket league replay folder, this makes steam cloud very confused when it tries to start rocket league and it finds a mismatch between the cloud and your local folder and subsequently redownloads every moved replay. To avoid this make sure to start rocket league before starting the RLRH. Having the replays redownloaded won't disturb the RLRHs operation, it is simply annoying having to wait for the download.**
 
-If you want to reset your replay folder to its original state open a terminal window in its folder (Hold Shift and right click somewhere in the folder then select open command prompt) then run
+If you want to reset your replay folder to its original state open a terminal window in the RLRH folder (Hold Shift and right click somewhere in the folder then select open command prompt) then run
 >RocketLeagueReplayHandler.exe reset
 
 Or if you prefer the manual way you can go to your replay folder (%user%\Documents\My Games\Rocket League\TAGame\Demos) and copy everything in the backup folder to the Demos folder and then delete the folders.
