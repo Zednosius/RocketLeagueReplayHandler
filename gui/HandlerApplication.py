@@ -67,10 +67,12 @@ class ReplayManager(tk.Frame):
         scrollbar2 = ttk.Scrollbar(f2, orient=tk.VERTICAL)
         self.staged_list = ReplayList(f2,yscrollcommand=scrollbar2.set)
         self.staged_list.bind("<MouseWheel>",lambda event : self.staged_list.yview("scroll",-event.delta/120,"units"))
+        self.staged_list.bind("<Delete>", lambda event :self.staged_list.delete(self.staged_list.selected_item))
         scrollbar2.config(command=self.staged_list.yview)
         scrollbar2.pack(side=tk.RIGHT, fill=tk.Y)
         self.staged_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-        
+        self.staged_list.set_insert_callback(self.copy_to_staging)
+        self.staged_list.set_delete_callback(self.delete_from_staging)
 
         # self.tracked_replays.grid(row=1,column=0,sticky="NSWE")
         # self.staged_list.grid(row=1,column=2,sticky="NSWE")
@@ -84,8 +86,7 @@ class ReplayManager(tk.Frame):
 
         self.tracked_replays.link(self.staged_list)
         self.staged_list.link(self.tracked_replays)
-        self.staged_list.set_insert_callback(self.copy_to_staging)
-        # self.staged_list.set_delete_callback(self.delete_from_staging)
+        
 
         frame.grid_columnconfigure(0,weight=1)
         frame.grid_columnconfigure(1,weight=1)
@@ -310,7 +311,7 @@ class ReplayManager(tk.Frame):
     def unstage_all(self):
         logger.info("Unstaging all staged replays")
         if self.staged_list.size() == 0: return
-        self.delete_from_staging(self.staged_list.variables)
+        #self.delete_from_staging(self.staged_list.variables)
         self.staged_list.delete(0,self.staged_list.size())
         logger.info("Unstage all complete")
 
