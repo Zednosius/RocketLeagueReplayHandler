@@ -238,6 +238,7 @@ class ConfirmPopup(tk.Toplevel):
         self.label.grid(row=0,column=0,columnspan=3)
         self.yesButton.grid(row=1,column=0)
         self.noButton.grid(row=1,column=2)
+        self.geometry("+%d+%d" % (wroot_x+50, wroot_y+50))
         logger.info("Confirm popup created")
 
     def confirm(self):
