@@ -33,21 +33,26 @@ def on_exit(rman,root):
     root.destroy()
 
 def restore():
+    print "Restoring demo folder"
     logger.info("Restoring demo folder to its original state")
+    logger.info("Path to backups: %s",rl_paths.backup_folder())
+    logger.debug("Files there: %s",os.listdir(rl_paths.backup_folder()))
     for f in os.listdir(rl_paths.backup_folder()):
         f = os.path.splitext(f)[0]
         src = rl_paths.backup_folder(f)
         dst = rl_paths.demo_folder(f)
-        shutil.cop2(src,dst)
+        shutil.copy2(src,dst)
         logger.debug("Copied from %s to %s",src,dst)
 
     shutil.rmtree(rl_paths.tracked_folder())
     shutil.rmtree(rl_paths.untracked_folder())
     logger.info("Removed tracked and untracked folder")
     logger.info("Restore Complete!")
+    print "Demo folder restored!"
 
 __location__ = get_main_dir()
 def main():
+    print "Starting application"
     try:
         if not os.path.isfile(__location__+"\\rocketleague.db"):
             import db_setup
@@ -83,6 +88,11 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         main()
     elif len(sys.argv) == 2 and sys.argv[1].lower() == "restore":
-        restore()
+        try:
+            restore()
+        except Exception, e:
+            logger.error("Encountered uncaught error")
+            logger.error("Error was: %s", e)
+            print e
 
 
