@@ -73,7 +73,11 @@ Clicking it will display information about it in the middle window.
 Add a tag to your selected replay by pressing the *add tag* button and writing into the dialog that pops up.
 
 ### Add to group ###
-Add the replay to a group by pressing the *add group" button and then either selecting an existing group in the dropdown or by writing directly into it the field.
+Add the replay to a group by pressing the *add group" button and then either selecting an existing group in the dropdown or by writing directly into the field.
+
+
+### Filtering ###
+Press the filter button underneath the to display the filter popup. Enter that which you want to filter on then press apply. To go back to the list of all replays simply click apply with all filters left empty. Keep in mind that it currently searches for exact matches, eg. "Group" and "group" are seen as different, so if you do not find any results make sure to double check that there are no misspellings or similar.
 
 ### Staging ###
 To stage a replay for viewing ingame simply select the replay you want and press the Enter key on your keyboard.
@@ -85,8 +89,8 @@ If you want to unstage all replays you can press the button underneath the list.
 ### Untracking ###
 To untrack a replay, e.g. delete it from the database, select it in the list and press the Delete key on your keyboard and then select yes in the confirmation popup. This will throw it back to the list of untracked replays.
 
-### Filtering ###
-Press the filter button underneath the to display the filter popup. Enter that which you want to filter on then press apply. To go back to the list of all replays simply click apply with all filters left empty. Keep in mind that it currently searches for exact matches, eg. "Group" and "group" are seen as different, so if you do not find any results make sure to double check that there are no misspellings or similar.
+### Deleting ###
+To fully delete a replay, select in the untracked replay list and press the delete. Selecting yes in the confirmation box will permanently delete your replay, including the backup of it.
 
 
 
