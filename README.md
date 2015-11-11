@@ -7,9 +7,11 @@ This project is in an functional alpha state. It might not be the prettiest but 
 ### Tracking replays which gives you the ability to ###
 
 * Give them a custom name.
+* View information such as players participating, goals made etc.
 * Add tags to them, for example marking when a cool save happened.
 * Add them to groups.
 * Add notes to them.
+* Staging, no more scrolling through dozens of replays!
 
 ### View information ###
 
