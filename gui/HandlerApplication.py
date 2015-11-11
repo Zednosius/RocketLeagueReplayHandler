@@ -41,6 +41,8 @@ class ReplayManager(tk.Frame):
         n.pack(fill="both",expand=1)
         self.start_browse_mode(f1)
         self.start_add_mode(f2)
+        if(self.tracked_replays.size() == 0):
+            n.select(1)
         logger.info("Manager created")
 
 
