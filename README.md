@@ -94,7 +94,10 @@ To untrack a replay, e.g. delete it from the database, select it in the list and
 ### Deleting ###
 To fully delete a replay, select in the untracked replay list and press the delete. Selecting yes in the confirmation box will permanently delete your replay, including the backup of it.
 
+### Screencaps ###
 
+![Browse Tab](http://i.imgur.com/A4sleF7.png)
+![Add Tab](http://i.imgur.com/XitT97P.png)
 
 # License #
 See LICENSE
