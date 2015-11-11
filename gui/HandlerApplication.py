@@ -104,6 +104,7 @@ class ReplayManager(tk.Frame):
         scrollbar = ttk.Scrollbar(f, orient=tk.VERTICAL)
         self.untracked_replays = ReplayList(f,yscrollcommand=scrollbar.set)
         self.untracked_replays.bind("<MouseWheel>",lambda event : self.untracked_replays.yview("scroll",-event.delta/120,"units"))
+        self.untracked_replays.bind("<Delete>",lambda event: self.delete_untracked_replay_popup())
         scrollbar.config(command=self.untracked_replays.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.untracked_replays.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
@@ -341,5 +342,20 @@ class ReplayManager(tk.Frame):
         shutil.move(rl_paths.tracked_folder(varlist[1]),rl_paths.untracked_folder(varlist[1]))
         logger.info("Deleted replay")
 
-        
+    def delete_untracked_replay_popup(self):
+        if(self.untracked_replays.size() == 0): return
+        logger.info("Asking about deletion of replay")
+        pop = ConfirmPopup(text="Are you sure you want to delete this replay from your computer?\nThis is permanent and your replay can not be recovered", 
+            winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()),
+            callback=self.delete_untracked_replay
+            )
+        pop.title("Delete")
 
+    def delete_untracked_replay(self):
+        varlist = self.untracked_replays.get_variables(self.untracked_replays.selected_item)
+        logger.debug("DELETING: %s",varlist)
+        os.remove(rl_paths.untracked_folder(varlist[0]))
+        os.remove(rl_paths.backup_folder(varlist[0]))
+        if self.untracked_replays.size() == 0:
+            self.edit_frame.clear()
+        logger.info("Deleted replay %s from computer",varlist[0])
