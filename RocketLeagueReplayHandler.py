@@ -5,6 +5,7 @@
 from Tkinter import *
 import ttk
 import gui.HandlerApplication as cst
+import threading
 import sys
 import os
 import rl_paths
@@ -32,7 +33,8 @@ def on_exit(rman,root):
     rman.save()
     root.destroy()
 
-def restore():
+def restore(var):
+
     print "Restoring demo folder"
     logger.info("Restoring demo folder to its original state")
     logger.info("Path to backups: %s",rl_paths.backup_folder())
@@ -48,7 +50,7 @@ def restore():
     shutil.rmtree(rl_paths.untracked_folder())
     logger.info("Removed tracked and untracked folder")
     logger.info("Restore Complete!")
-    print "Demo folder restored!"
+    var.set("Demo folder restored!")
 
 __location__ = get_main_dir()
 def main():
@@ -89,7 +91,13 @@ if __name__ == '__main__':
         main()
     elif len(sys.argv) == 2 and sys.argv[1].lower() == "restore":
         try:
-            restore()
+            root = Tk()
+            root.title("Rocket League Replay Handler")
+            var = StringVar()
+            var.set("Restoring replay folder to original state")
+            threading.Thread(target=restore,args=[var]).start()
+            Label(root,textvariable=var).pack()
+            root.mainloop()
         except Exception, e:
             logger.error("Encountered uncaught error")
             logger.error("Error was: %s", e)
