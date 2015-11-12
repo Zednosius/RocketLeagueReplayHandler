@@ -5,3 +5,5 @@ data/*
 build/*
 dist/*
 *.log
+*.spec
+*.log.*
