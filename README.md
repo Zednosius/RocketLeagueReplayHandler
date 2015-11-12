@@ -50,7 +50,7 @@ Or if you prefer the manual way you can go to your replay folder (%user%\Documen
 
 # Installation #
 
-Simply download the zip under releases and extract it to a folder of your choice. The run the RocketLeagueReplayHandler.exe inside it and it should hopefully work (I have not been able to test it on very many computers). The first startup may be a bit slow since it has a couple of things to do first time around.
+Simply download the [zip under releases](https://github.com/Zednosius/RocketLeagueReplayHandler/releases) and extract it to a folder of your choice. The run the RocketLeagueReplayHandler.exe inside it and it should hopefully work (I have not been able to test it on very many computers). The first startup may be a bit slow since it has a couple of things to do first time around.
 
 You could also clone this repository and run the `RocketLeagueReplayhandler.py` if you prefer that. Make sure that you have installed the parser from [Daniel Samuels](https://github.com/danielsamuels/rocket-league-replay-parser).
 
