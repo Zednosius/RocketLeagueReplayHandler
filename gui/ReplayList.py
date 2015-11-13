@@ -164,9 +164,6 @@ class ReplayList(tk.Listbox):
                 self.variables.pop(i-1)
 
     def delete_selected(self):
-        # tk.Listbox.delete(self,self.selected_item)
-        # logger.debug("Deleting selected variables %s",self.variables[self.selected_item])
-        # self.variables.pop(self.selected_item)
         self.delete(self.selected_item)
         
         if self.selected_item >= self.size():
@@ -186,3 +183,10 @@ class ReplayList(tk.Listbox):
                 and event.x_root < self.winfo_rootx()+self.winfo_width() \
                 and event.y_root > self.winfo_rooty() \
                 and event.y_root < self.winfo_rooty()+self.winfo_height()
+    def has_selected_item(self):
+        return hasattr(self,"selected_item") and self.selected_item >= 0 and self.selected_item < self.size()
+    
+    def get_selected_item(self):
+        return self.variables[self.selected_item]
+
+
