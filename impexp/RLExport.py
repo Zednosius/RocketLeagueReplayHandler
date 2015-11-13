@@ -18,7 +18,7 @@ def convert2json(replay_vars):
     data['date'] = replay_vars[4]
     fill_with_db_items(replay_vars[0],data)
     logger.debug("DATA: ",data)
-    return json.dumps(data)
+    return data
 
 def fill_with_db_items(ID, data):
     with DB_Manager() as dmann:
@@ -26,3 +26,14 @@ def fill_with_db_items(ID, data):
         data['tags']   = [x[1:] for x in dmann.get_all_where("tags",id=("=",ID)) ]
         data['notes']  = [x[1:] for x in dmann.get_all_where("notes",id=("=",ID))]
         data['groups'] = dmann.get_groups(ID)
+
+def dump_to_zip(jsondata):
+    with zipfile.ZipFile("export.zip","w") as fzip:
+        fzip.writestr("data.json",json.dumps(jsondata))
+        if type(jsondata) == list:
+            for replay in jsondata:
+                fzip.write(rl_paths.tracked_folder(replay['filename']))
+        elif type(jsondata) == dict:
+            fzip.write(rl_paths.tracked_folder(jsondata['filename']),jsondata['filename']+".replay")
+    print "Created zipfile"
+

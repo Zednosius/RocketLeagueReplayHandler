@@ -27,7 +27,10 @@ def get_main_dir():
    return os.path.dirname(sys.argv[0])
 def export_func(app):
     if app.tracked_replays.has_selected_item():
-        print RLExport.convert2json(app.tracked_replays.get_selected_item())
+        data = RLExport.convert2json(app.tracked_replays.get_selected_item())
+        print "data: ",data
+        print "Creating zip"
+        RLExport.dump_to_zip(data)
 
 
 def output():
