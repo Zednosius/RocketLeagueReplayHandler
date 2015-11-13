@@ -57,7 +57,7 @@ class ReplayManager(tk.Frame):
         f  = tk.Frame(frame)
         f2 = tk.Frame(frame)
         scrollbar = ttk.Scrollbar(f, orient=tk.VERTICAL)
-        self.tracked_replays = ReplayList(f,yscrollcommand=scrollbar.set)
+        self.tracked_replays = ReplayList(f,yscrollcommand=scrollbar.set,exportselection=0)
         self.tracked_replays.bind("<MouseWheel>",lambda event : self.tracked_replays.yview("scroll",-event.delta/120,"units"))
         self.tracked_replays.bind("<Delete>", lambda e : self.delete_tracked_replay_popup())
         scrollbar.config(command=self.tracked_replays.yview)
