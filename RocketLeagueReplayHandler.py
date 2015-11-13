@@ -11,7 +11,7 @@ import os
 import rl_paths
 import shutil
 import imp
-
+import impexp.RLExport as RLExport
 import logging
 logger = logging.getLogger("root")
 
@@ -25,6 +25,10 @@ def get_main_dir():
    if main_is_frozen():
        return os.path.dirname(sys.executable)
    return os.path.dirname(sys.argv[0])
+def export_func(app):
+    if app.tracked_replays.has_selected_item():
+        print RLExport.convert2json(app.tracked_replays.get_selected_item())
+
 
 def output():
     print "Not implemented"
@@ -63,22 +67,20 @@ def main():
         root = Tk()
         root.title("Rocket League Replay Handler")
         root.minsize(700,500)
-        menu = Menu(root)
-        root.config(menu=menu)
-
-        filemenu = Menu(menu)
-        #menu.add_cascade(label="File", menu=filemenu)
-        #filemenu.add_command(label="New", command=output)
-        #filemenu.add_command(label="Open...", command=output)
-        filemenu.add_separator()
-       # filemenu.add_command(label="Exit", command=output)
-
-        helpmenu = Menu(menu)
-        #menu.add_cascade(label="Help", menu=helpmenu)
-        #helpmenu.add_command(label="About...", command=output)
+      
 
         rman = cst.ReplayManager(root)
         rman.pack(expand=True,fill=BOTH)
+
+        menu = Menu(root)
+        root.config(menu=menu)
+
+        filemenu = Menu(menu,tearoff=0)
+        menu.add_cascade(label="File", menu=filemenu)
+        filemenu.add_command(label="Import", command=output)
+        filemenu.add_command(label="Export", command=lambda : export_func(rman))
+
+
         root.protocol("WM_DELETE_WINDOW",lambda : on_exit(rman,root))
         root.mainloop()
     except Exception, e:
