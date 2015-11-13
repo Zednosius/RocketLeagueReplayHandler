@@ -5,7 +5,6 @@ import logging
 from db_manager import *
 logger = logging.getLogger(__name__)
 
-
 def convertreplays2json(replay_list):
     converts = []
     for replay in replay_list:
