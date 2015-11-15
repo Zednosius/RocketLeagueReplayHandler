@@ -249,3 +249,33 @@ class ConfirmPopup(tk.Toplevel):
 
     def abort(self):
         self.destroy()
+
+
+
+class ExportPopup(tk.Toplevel):
+    def __init__(self,parent=None,**kw):
+        self.callback = kw.pop("callback",None)
+        self.listitems = kw.pop("listitems", [])
+        wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
+        tk.Toplevel.__init__(self,parent,**kw)
+        self.grab_set()
+        self.focus_set()
+
+        self.list = tk.Listbox(self,selectmode=tk.MULTIPLE)
+        self.export = tk.Button(self,text="Export",command=self.done)
+        for item in self.listitems:
+            self.list.insert("end", item[2])
+        self.list.configure(height=self.list.size())
+        self.list.grid(row=0,column=0,sticky="nswe")
+        self.export.grid(row=1,column=0,sticky="wNSe")
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_rowconfigure(0,weight=1)
+        self.geometry("+%d+%d" % (wroot_x+50, wroot_y+50))
+        logger.info("Confirm popup created")
+
+
+    def done(self):
+        print self.list.curselection()
+        self.selection = [self.listitems[int(x)] for x in self.list.curselection()]
+        self.destroy()
+
