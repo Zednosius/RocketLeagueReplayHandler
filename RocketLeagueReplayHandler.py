@@ -3,6 +3,7 @@
 #Copyright (C) 2015 Erik Söderberg
 #See LICENSE for more information
 from Tkinter import *
+import tkFileDialog
 import ttk
 import gui.HandlerApplication as cst
 import threading
@@ -12,7 +13,10 @@ import rl_paths
 import shutil
 import imp
 import impexp.RLExport as RLExport
+import impexp.RLImport as RLImport
 import logging
+from os.path import expanduser
+
 logger = logging.getLogger("root")
 
 
@@ -25,12 +29,18 @@ def get_main_dir():
    if main_is_frozen():
        return os.path.dirname(sys.executable)
    return os.path.dirname(sys.argv[0])
+
 def export_func(app):
     if app.tracked_replays.has_selected_item():
         data = RLExport.convert2json(app.tracked_replays.get_selected_item())
         print "data: ",data
         print "Creating zip"
-        RLExport.dump_to_zip(data)
+        RLExport.dump_to_zip([data])
+
+def import_func(app):
+    filename = tkFileDialog.askopenfilename(initialdir=expanduser("~")+"\\Downloads",defaultextension=".zip")
+    print filename
+    RLImport.import_zip(filename)
 
 
 def output():
@@ -80,7 +90,7 @@ def main():
 
         filemenu = Menu(menu,tearoff=0)
         menu.add_cascade(label="File", menu=filemenu)
-        filemenu.add_command(label="Import", command=output)
+        filemenu.add_command(label="Import", command=lambda : import_func(rman))
         filemenu.add_command(label="Export", command=lambda : export_func(rman))
 
 
