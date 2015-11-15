@@ -9,6 +9,7 @@ def convertreplays2json(replay_list):
     converts = []
     for replay in replay_list:
         converts.append(convert2json(replay))
+    return converts
 
 def convert2json(replay_vars):
     data = {}
