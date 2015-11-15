@@ -30,7 +30,7 @@ def fill_with_db_items(ID, data):
 
 def dump_to_zip(jsondata):
     with zipfile.ZipFile("export.zip","w") as fzip:
-        fzip.writestr("data.json",json.dumps(jsondata))
+        fzip.writestr("data.json",json.dumps(jsondata,separators=(",",":"),sort_keys=True,indent=1))
         if type(jsondata) == list:
             for replay in jsondata:
                 fzip.write(rl_paths.tracked_folder(replay['filename']),replay['filename']+".replay")
