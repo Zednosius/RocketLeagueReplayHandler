@@ -141,6 +141,10 @@ class ReplayManager(tk.Frame):
             logger.info("Emptied tracked_replay list")
 
         for replay in replays:
+            if not os.path.isfile(rl_paths.tracked_folder(replay[1])) and os.path.isfile(rl_paths.backup_folder(replay[1])):
+                shutil.copy2(rl_paths.backup_folder(replay[1]), rl_paths.tracked_folder(replay[1]))
+                logger.info("Restored missing replay %s from backup",replay[1])
+
             self.tracked_replays.insert("end",replay[2],replay)
         logger.info("Inserted replays into tracked_replay_list")
 
