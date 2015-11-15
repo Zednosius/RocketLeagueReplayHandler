@@ -15,7 +15,9 @@ import imp
 import impexp.RLExport as RLExport
 import impexp.RLImport as RLImport
 import logging
+import gui.Popups as Popups
 from os.path import expanduser
+import tkMessageBox
 
 logger = logging.getLogger("root")
 
@@ -30,12 +32,20 @@ def get_main_dir():
        return os.path.dirname(sys.executable)
    return os.path.dirname(sys.argv[0])
 
-def export_func(app):
+def export_single_func(app):
     if app.tracked_replays.has_selected_item():
         data = RLExport.convert2json(app.tracked_replays.get_selected_item())
-        print "data: ",data
-        print "Creating zip"
         RLExport.dump_to_zip([data])
+        tkMessageBox.showinfo(title="Export",message="Export complete!")
+
+def export_many_func(app):
+    if app.tracked_replays.size() > 0:
+        d = Popups.ExportPopup(winfo_rootc=(app.winfo_rootx(),app.winfo_rooty()),listitems=app.tracked_replays.variables)
+        app.wait_window(d)
+        if hasattr(d,"selection"):
+            data = RLExport.convertreplays2json(d.selection)
+            RLExport.dump_to_zip(data)
+            tkMessageBox.showinfo(title="Export",message="Export complete!")
 
 def import_func(app):
     filename = tkFileDialog.askopenfilename(initialdir=expanduser("~")+"\\Downloads",defaultextension=".zip")
@@ -91,8 +101,8 @@ def main():
         filemenu = Menu(menu,tearoff=0)
         menu.add_cascade(label="File", menu=filemenu)
         filemenu.add_command(label="Import", command=lambda : import_func(rman))
-        filemenu.add_command(label="Export", command=lambda : export_func(rman))
-
+        filemenu.add_command(label="Export Selected", command=lambda : export_single_func(rman))
+        filemenu.add_command(label="Export Multiple", command=lambda : export_many_func(rman))
 
         root.protocol("WM_DELETE_WINDOW",lambda : on_exit(rman,root))
         root.mainloop()
