@@ -32,8 +32,9 @@ def dump_to_zip(jsondata):
         fzip.writestr("data.json",json.dumps(jsondata))
         if type(jsondata) == list:
             for replay in jsondata:
-                fzip.write(rl_paths.tracked_folder(replay['filename']))
-        elif type(jsondata) == dict:
-            fzip.write(rl_paths.tracked_folder(jsondata['filename']),jsondata['filename']+".replay")
+                fzip.write(rl_paths.tracked_folder(replay['filename']),replay['filename']+".replay")
+        else:
+            raise ValueError("jsondata must be list of dicts")
+
     print "Created zipfile"
 
