@@ -169,6 +169,29 @@ class DB_Manager():
         if self.debug:
             print msg % arg
 
+    def add_import(self,importdata):
+        c = self.add_replay(importdata['filename'],importdata['name'],importdata['map'],importdata['date'])
+        rid = c.lastrowid
+
+        for t in importdata['teams']:
+            self.add_team(rid,*t)
+        for n in importdata['notes']:
+            self.add_note(rid, n[0])
+        for g in importdata['groups']:
+            try:
+                self.add_group(g[0])
+            except sqlite3.IntegrityError:
+                pass #Group already existed
+            self.add_replay_to_group(rid, self.get_all_where("groups",name=("=",g[0]))[0][0])
+        for t in importdata['tags']:
+            self.add_tag(rid,*t)
+
+
+
+
+
+
+
 if __name__ == '__main__':
     with DB_Manager(debug=True) as mann:
         # print mann.get_all("replays")
