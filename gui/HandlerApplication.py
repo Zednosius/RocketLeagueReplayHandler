@@ -21,6 +21,8 @@ import logging
 import logging.config
 from logging.handlers import RotatingFileHandler
 
+import tasks
+
 logging.config.fileConfig("log.config")
 logger = logging.getLogger(__name__)
 
@@ -63,8 +65,10 @@ class ReplayManager(tk.Frame):
         scrollbar.config(command=self.tracked_replays.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.tracked_replays.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-        self.fetch_replays()
 
+
+        self.fetch_replays()
+        print "After fetch"
         
         scrollbar2 = ttk.Scrollbar(f2, orient=tk.VERTICAL)
         self.staged_list = ReplayList(f2,yscrollcommand=scrollbar2.set)
@@ -73,8 +77,10 @@ class ReplayManager(tk.Frame):
         scrollbar2.config(command=self.staged_list.yview)
         scrollbar2.pack(side=tk.RIGHT, fill=tk.Y)
         self.staged_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-        self.staged_list.set_insert_callback(self.copy_to_staging)
-        self.staged_list.set_delete_callback(self.delete_from_staging)
+
+        #Remember to undo these comments later.
+        # self.staged_list.set_insert_callback(self.copy_to_staging)
+        # self.staged_list.set_delete_callback(self.delete_from_staging)
 
         # self.tracked_replays.grid(row=1,column=0,sticky="NSWE")
         # self.staged_list.grid(row=1,column=2,sticky="NSWE")
@@ -83,13 +89,14 @@ class ReplayManager(tk.Frame):
 
 
         self.info = ReplayInfoFrame(frame)#tk.Frame(self,width=100,height=100)
-
+        print "Info grid"
         self.info.grid(row=1,column=1,rowspan=2,sticky="NSWE")
 
         self.tracked_replays.link(self.staged_list)
         self.staged_list.link(self.tracked_replays)
         
-
+        self.editbutton = tk.Button(frame,text="EDIT",command=self.edit)
+        self.editbutton.grid(row=3,column=0)
         frame.grid_columnconfigure(0,weight=1)
         frame.grid_columnconfigure(1,weight=1)
         frame.grid_columnconfigure(2,weight=1)
@@ -110,8 +117,9 @@ class ReplayManager(tk.Frame):
         self.untracked_replays.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
         f.grid(row=1,column=0,sticky="NSWE")
 
-        self.scan_and_fetch_untracked()
-
+        print "Scan fetch untracked"
+        #self.scan_and_fetch_untracked()
+        print "Scan fetch untracke ddone"
 
         self.edit_frame = ReplayEditFrame(frame)
         self.edit_frame.grid(row=1,column=1,sticky="NWSE")
@@ -125,30 +133,17 @@ class ReplayManager(tk.Frame):
         logger.info("Add tab created")
 
 
-    def fetch_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
-        logger.info("Fetching replays")
-        with DB_Manager() as mann:
-            if replayfilters  or tagfilters or playerfilters or groupfilters:
-                replays = mann.filter_replays(replayfilters,tagfilters,playerfilters,groupfilters)
-                logger.debug("Fetched replays from database with parameters %s %s %s %s",
-                    replayfilters,tagfilters,playerfilters,groupfilters)
-            else:
-                replays = mann.get_all("replays","date_time desc")
-                logger.debug("Fetched all replays (paramless)")
+    def replay_insert(self, replay):
+        print "Inserting",replay
+        print "type",type(replay)
+        self.tracked_replays.insert("end",replay[2],replay)
 
+    def fetch_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
         if self.tracked_replays.size() > 0:
             self.tracked_replays.delete(0,self.tracked_replays.size())
             logger.info("Emptied tracked_replay list")
-
-        for replay in replays:
-            if not os.path.isfile(rl_paths.tracked_folder(replay[1])) and os.path.isfile(rl_paths.backup_folder(replay[1])):
-                shutil.copy2(rl_paths.backup_folder(replay[1]), rl_paths.tracked_folder(replay[1]))
-                logger.info("Restored missing replay %s from backup",replay[1])
-
-            self.tracked_replays.insert("end",replay[2],replay)
-        logger.info("Inserted replays into tracked_replay_list")
-
-
+        tasks.start_task(self,self.replay_insert,tasks.fetch_replays)
+        
     def scan_demo_folder(self):
         self.demo_scan = []
         logger.info("Scanning demo on path %s",rl_paths.demo_folder())
@@ -292,18 +287,6 @@ class ReplayManager(tk.Frame):
     def save(self):
         self.info.save()
 
-    def copy_to_staging(self,variables):
-        if not os.path.isfile(rl_paths.demo_folder(variables[1])):
-            shutil.copy2(rl_paths.tracked_folder(variables[1]),rl_paths.demo_folder(variables[1]))
-            logger.info("Copied %s to demo_folder",variables[1])
-
-        if not os.path.isfile(rl_paths.tracked_folder(variables[1])):
-            shutil.copy2(rl_paths.demo_folder(variables[1]),rl_paths.tracked_folder(variables[1]))
-            logger.info("Copied %s to tracked folder",variables[1])
-
-        if not os.path.isfile(rl_paths.backup_folder(variables[1])):
-            shutil.copy2(rl_paths.demo_folder(variables[1]),rl_paths.backup_folder(variables[1]))
-            logger.info("Copied %s to backup folder",variables[1])
 
     def delete_from_staging(self,variables_list):
         for variables in variables_list:
@@ -366,3 +349,10 @@ class ReplayManager(tk.Frame):
         if self.untracked_replays.size() == 0:
             self.edit_frame.clear()
         logger.info("Deleted replay %s from computer",varlist[0])
+
+    def edit(self):
+        top = tk.Toplevel()
+        ed = ReplayEditFrame(top)
+        ed.display_new(self.info.values)
+
+
