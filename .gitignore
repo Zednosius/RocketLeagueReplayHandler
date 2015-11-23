@@ -8,3 +8,4 @@ dist/*
 *.spec
 *.log.*
 stats.py
+*.zip
