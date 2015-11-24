@@ -199,7 +199,7 @@ class ReplayManager(tk.Frame):
         varlist = self.untracked_replays.get_variables(self.untracked_replays.selected_item)
         logger.debug("DELETING: %s",varlist)
         os.remove(rl_paths.untracked_folder(varlist[0]))
-        os.remove(rl_paths.backup_folder(varlist[0]))
+        # os.remove(rl_paths.backup_folder(varlist[0]))
         if self.untracked_replays.size() == 0:
             self.edit_frame.clear()
         logger.info("Deleted replay %s from computer",varlist[0])
