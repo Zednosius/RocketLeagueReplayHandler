@@ -15,6 +15,7 @@ import imp
 import impexp.RLExport as RLExport
 import impexp.RLImport as RLImport
 import logging
+import traceback
 import gui.Popups as Popups
 from os.path import expanduser
 import tkMessageBox
@@ -114,7 +115,8 @@ def main():
     except Exception, e:
         logger.error("Encountered uncaught error")
         logger.error("Error was: %s", e)
-        print e
+        print "Error",e,sys.exc_info()
+        print traceback.format_exc()
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
@@ -131,6 +133,6 @@ if __name__ == '__main__':
         except Exception, e:
             logger.error("Encountered uncaught error")
             logger.error("Error was: %s", e)
-            print e
+            print "error",e
 
 
