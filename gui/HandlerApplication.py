@@ -43,8 +43,8 @@ class ReplayManager(tk.Frame):
         n.pack(fill="both",expand=1)
         self.start_browse_mode(f1)
         self.start_add_mode(f2)
-        if(self.tracked_replays.size() == 0):
-            n.select(1)
+        # if(self.tracked_replays.size() == 0):
+        #     n.select(1)
         logger.info("Manager created")
 
 
@@ -66,8 +66,8 @@ class ReplayManager(tk.Frame):
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.tracked_replays.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
 
-
-        self.fetch_replays()
+        #self.process_new()
+        self.startup_procedure()
         print "After fetch"
         
         scrollbar2 = ttk.Scrollbar(f2, orient=tk.VERTICAL)
@@ -138,12 +138,18 @@ class ReplayManager(tk.Frame):
         print "type",type(replay)
         self.tracked_replays.insert("end",replay[2],replay)
 
+    def process_new(self):
+        tasks.start_task(self,None,tasks.scan_refresh)
+
+    def startup_procedure(self):
+        tasks.start_task(self,self.replay_insert, tasks.startup_procedure)
+
     def fetch_replays(self,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
         if self.tracked_replays.size() > 0:
             self.tracked_replays.delete(0,self.tracked_replays.size())
             logger.info("Emptied tracked_replay list")
         tasks.start_task(self,self.replay_insert,tasks.fetch_replays)
-        
+
     def scan_demo_folder(self):
         self.demo_scan = []
         logger.info("Scanning demo on path %s",rl_paths.demo_folder())

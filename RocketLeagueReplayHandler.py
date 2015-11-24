@@ -86,6 +86,11 @@ def main():
         if not os.path.isfile(__location__+"\\rocketleague.db"):
             import db_setup
             db_setup.initdb()
+        #If untracked folder move everything to demo folder for new processing method.
+        if os.path.isdir(rl_paths.untracked_folder()):
+            for f in os.listdir(rl_paths.untracked_folder()):
+                f = os.path.splitext(f)[0]
+                shutil.move(rl_paths.untracked_folder(f),rl_paths.demo_folder(f))
 
         root = Tk()
         root.title("Rocket League Replay Handler")
