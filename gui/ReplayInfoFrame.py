@@ -8,8 +8,14 @@ import tkFont
 from Popups import *
 from db_manager import *
 import logging
+import tasks
 logger = logging.getLogger(__name__)
+logger.debug_ = logger.debug
+def dbg(txt,*args):
+    print txt % args
+    logger.debug_(txt,*args)
 
+logger.debug = dbg
 def tag_popup(taglist, infowidget):
     if hasattr(infowidget,"id"):
         TagPopup(taglist=taglist,infowidget=infowidget)
@@ -36,7 +42,6 @@ class ReplayInfoFrame(tk.Frame):
 
     def make_table(self):
 
-
         self.allcols = ["#1","#2","#3","#4"]
         self.table["columns"] =["#1","#2","#3","#4"]
         style = ttk.Style(self)
@@ -52,15 +57,14 @@ class ReplayInfoFrame(tk.Frame):
         self.table.column("#1",anchor='center',minwidth=100,width=100,stretch=True)
         #Remove the first column
         self.table.column("#0",width=0,minwidth=0)
-        self.table_insert_values()
+        # self.table_insert_values()
         logger.info("Made table")
 
     def table_insert_values(self):
-        # print self.values
-        """Inserts all values in self.values into the table"""
+        """Inserts all values in self.teams into the table"""
         self.table.delete(*self.table.get_children())
     
-        for values in self.values:
+        for values in self.teams:
             self.table.insert("", "end",
              values=values[1:],
              tags=("orange" if int(values[2]) == 1 else "blue"))
@@ -83,21 +87,9 @@ class ReplayInfoFrame(tk.Frame):
             else:
                 lbl = self.add_header_label(self.headers[i])
                 added = True
-                   
-        
-    def display_new(self, headers):
-        self.save()
-        #Check if the headers are the same, if they are skip reloading the frame
-        if len(self.headers)+2 == len(headers):
-            same = headers[0] == self.id and headers[1] == self.filename
-            for i in range(0,len(self.headers)):
-                same = self.headers[i] == headers[i+2] and same
-            if same: return
-
-        self.use_headers(headers)
-        self.init()
 
     def clear(self):
+        self.save()
         self.table.delete(*self.table.get_children())
         self.taglist.delete(0,"end")
         self.grouplist.delete(0,"end")
@@ -106,66 +98,16 @@ class ReplayInfoFrame(tk.Frame):
             headervar.set("")
         self.replay_entry = None
         self.headers = []
-        self.values = []
+        self.teams = []
         logger.info("Cleared table")
 
     def save(self):
         #Save old notes
         if len(self.headers) != 0:
-            with DB_Manager() as dmann:
-                txt = self.note_body.get("1.0","end-1c")
-                self.notes[0] = (self.id,txt)
-                logger.debug("Updating %ss note: %s " ,self.id,txt)
-                dmann.update_note(self.id, txt)
-                self.cached[self.id]["notes"] = [(self.id,self.note_body.get("1.0","end-1c"),)]
-            logger.debug("caching: val:%s tags:%s note:%s groups:%s",self.values,self.tags,self.notes,self.groups)
+            tasks.start_task(self,None,tasks.save_data,{"id":self.id,"note":self.note_body.get("1.0","end-1c")})
 
-            self.cached[self.id]["values"] = list(self.values)
-            self.cached[self.id]["tags"] = [(self.id,)+v for v in self.taglist.list]
-            self.cached[self.id]["notes"] = list(self.notes)
-            self.cached[self.id]["groups"] = list(self.grouplist.list)
+    
 
-
-    def use_headers(self,headers):
-
-
-        """Uses the headers provided, replacing the old ones"""
-        
-        if headers:  
-            if headers[0] not in self.cached:
-                self.cached[headers[0]] = {"h":list(headers)}
-                # print "Cached on ",headers[0]
-                self.cache_order.append(headers[0])
-                if len(self.cache_order) > 10:
-                    self.cached.pop(self.cache_order.pop(0))
-
-            self.headers = headers
-
-            self.id = self.headers.pop(0)
-            self.filename = self.headers.pop(0)
-            if(len(self.headervars) == len(self.headers)):
-                self.populate_headers()
-
-    def load_values_from_db(self):
-        """Load data from database"""
-        # print "in cache: ",self.cached[self.id]
-        if "values" in self.cached[self.id]:
-            self.values = self.cached[self.id]["values"]
-            self.tags = self.cached[self.id]["tags"]
-            self.notes = self.cached[self.id]["notes"]
-            self.groups = self.cached[self.id]["groups"]
-            logger.info("Loaded data for %s from cache",self.id)
-            return 
-
-        with DB_Manager() as mann:
-            self.values = mann.get_all_where("teams",id=("=",self.id))
-            self.tags   = mann.get_all_where("tags",id=("=",self.id))
-            self.notes  = mann.get_all_where("notes",id=("=",self.id))
-            self.groups = mann.get_groups(self.id)
-            logger.info("Loaded data for %s from db",self.id)
-
-            
-        # print "cached: ",self.cached[self.id]
     def add_header_label(self,header):
         """Add label for a header value"""
         strvar = tk.StringVar()
@@ -177,41 +119,37 @@ class ReplayInfoFrame(tk.Frame):
         self.replay_header.grid_columnconfigure(col,weight=1)
         return lbl
 
-    def init(self):
-        """Construct self given values, self.headers need to be set so that associated data can be found."""
-        logger.info("Beginning initialization")
-        self.load_values_from_db()
+    def display(self,displaydata):
+        #Displaydata keys: headers, teams, tags, groups, notes
+        print "Displaying",displaydata
+        self.id = displaydata['headers'].pop(0)
+        self.filename = displaydata['headers'].pop(0)
+        self.headers = displaydata['headers']
+        self.teams = displaydata['teams']
         self.populate_headers()
-        self.table.configure(height=len(self.values) if len(self.values) > 2 else 4)
         self.make_table()
-        
-        self.taglist.delete(0,"end")
-        for (_,tag,time) in self.tags:
+        self.table_insert_values()
+
+        for (_,tag,time) in displaydata['tags']:
             self.taglist.insert(tag,time)
             logger.debug("Inserted tag %s@%s",tag,time)
-        self.grouplist.delete(0,"end")
 
-        for group in self.groups:
+
+        for group in displaydata['groups']:
             if type(group) == tuple:
                 group = group[0]
             self.grouplist.insert(group)
             logger.debug("Inserted group %s",group)
 
-        self.note_body.delete("1.0","end")
-        self.note_body.insert("end",self.notes[0][1] if self.notes else "")
+        self.note_body.insert("end",displaydata['notes'][0][1] if displaydata['notes'] else "")
         logger.info("Initialization complete")
 
     def __init__(self,parent,**kw):
         self.headervars = []
-        self.cached = {}
-        self.cache_order = []
         self.headers = []
-        self.use_headers(kw.pop("headers",[]))
-
         tk.Frame.__init__(self,parent,kw)
         
         self.mFont = tkFont.Font(family="Helvetica",size=14)
-        #Make the top info: name,map,date
        
 
         #Table with tags on the side
@@ -221,6 +159,7 @@ class ReplayInfoFrame(tk.Frame):
         self.replay_header.grid(row=0,column=0,sticky="WNE")
         self.table.grid(row=1,column=0,sticky="N")
         tableframe.grid(row=0,column=0,sticky="N")
+        self.make_table()
         #############################
 
 

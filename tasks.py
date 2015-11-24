@@ -29,8 +29,8 @@ def start_task(widget, add_func, func, *args):
     """
     t = threading.Thread(target=func,args=args,kwargs={"queue":resultqueue})
     t.start()
-    widget.after(50, result_checking,widget,add_func,resultqueue)
-    return t
+    widget.after(25, result_checking,widget,add_func,resultqueue)
+    return (t,resultqueue)
 
 def result_checking(widget, add_func, resultqueue):
     """
@@ -41,13 +41,14 @@ def result_checking(widget, add_func, resultqueue):
     try:
         v = resultqueue.get(block=False)
         print "Found on queue",v
-        if v == QueueOp.STOP:
+        if v == QueueOp.STOP or hasattr(resultqueue,"stopnow"):
+            print "FOUND STOP... STOPPING"
             return
         if add_func:
             add_func(v)
     except Queue.Empty, e:
         print "Excepted",e
-    widget.after(50,result_checking,widget,add_func,resultqueue)
+    widget.after(25,result_checking,widget,add_func,resultqueue)
 
 def copy_to_staging(variables, queue):
     if not os.path.isfile(rl_paths.demo_folder(variables[1])):
@@ -64,7 +65,7 @@ def copy_to_staging(variables, queue):
     queue.put(QueueOp.STOP)
 
 
-def fetch_replays(queue,replayfilters={},tagfilters={},playerfilters={},groupfilters={}):
+def fetch_replays(replayfilters={},tagfilters={},playerfilters={},groupfilters={},queue=None):
     logger.info("Fetching replays")
     with DB_Manager() as mann:
         if replayfilters  or tagfilters or playerfilters or groupfilters:
@@ -85,6 +86,27 @@ def fetch_replays(queue,replayfilters={},tagfilters={},playerfilters={},groupfil
         queue.put(replay)
 
     logger.info("Inserted replays into tracked_replay_list")
+    print "Fetch replays done"
+    queue.put(QueueOp.STOP)
+
+def fetch_display_data(replay,queue):
+    display_data = {}
+    with DB_Manager() as mann:
+        display_data['headers'] = list(replay)
+        display_data['teams']  = mann.get_all_where("teams",id=("=",replay[0]))
+        display_data['tags']    = mann.get_all_where("tags",id=("=",replay[0]))
+        display_data['notes']   = mann.get_all_where("notes",id=("=",replay[0]))
+        display_data['groups']  = mann.get_groups(replay[0])
+    queue.put(display_data)
+    queue.put(QueueOp.STOP)
+
+
+def save_data(data,queue):
+    with DB_Manager() as dmann:
+        id_ = data['id']
+        txt = data['note']
+        logger.debug("Updating %ss note: %s " ,id_,txt)
+        dmann.update_note(id_, txt)
     queue.put(QueueOp.STOP)
 
 def startup_procedure(queue):
@@ -94,7 +116,7 @@ def startup_procedure(queue):
     print "Scan complete"
     _process_new_replays(dlist)
     print "Process complete"
-    fetch_replays(queue)
+    fetch_replays(queue=queue)
     print "Fetched"
     queue.put(QueueOp.STOP)
 
@@ -223,3 +245,26 @@ def _insert_new_replay_into_database(replay):
         raise
 
 
+
+def insert_scanned_staged(self):
+    logger.info("Inserting scanned staged files into staged list")
+    count = 0
+    with DB_Manager() as dmann:
+        for entry in self.demo_scan:
+            if entry['tracked']:
+                count += 1
+                var = dmann.get_all_where("replays",filename=("=",entry["name"]))[0]
+                if self.staged_list.size() == 0: 
+                    self.staged_list.insert("end",var[2],var)
+                else:
+                    for i,v in enumerate(self.staged_list.variables):
+                        #Insert based on date
+                        if v[4] < var[4]:
+                            self.staged_list.insert(i,var[2],var)
+                            break
+                        elif i+1 == self.staged_list.size():
+                            self.staged_list.insert("end",var[2],var)
+                            break
+                logger.debug("Inserted staged replay %s",entry['name'])
+    logger.info("Inserted total of %s staged replays",count)
+    logger.info("Staged files insertion complete")
