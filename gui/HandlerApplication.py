@@ -205,7 +205,13 @@ class ReplayManager(tk.Frame):
 
     def edit(self):
         top = tk.Toplevel()
+        top.geometry("+%d+%d" % (self.winfo_rootx()+50,
+                                  self.winfo_rooty()+50))
+        top.grab_set()
         ed = ReplayEditFrame(top)
-        ed.display_new(self.info.values)
+        sb = ttk.Button(top,text="Save")
+        ed.pack(fill="both")
+        sb.pack(fill="both")
+        ed.display_new(dict(self.info.displaydata))
 
 

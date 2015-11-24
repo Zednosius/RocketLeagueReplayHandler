@@ -89,54 +89,24 @@ class ReplayEditFrame(tk.Frame):
 
 
 
-    def display_new(self,variables):
+    def display_new(self, replay):
         """
         Uses the variables provided to redraw this frame with the new information.
         """
-        data = replay_parser.ReplayParser().parse(variables[2])
-        self.headers = variables
-        self.values = []
-        logger.debug("Displaying new variables: %s",variables)
-
-        #New replay
-        if 'PlayerStats' in data['header'].keys():
-            logger.info("Replay was in new format")
-            self.notif_text.set("There might be missing data, doublecheck")
-            for ps in data['header']['PlayerStats']:
-                self.values.append(
-                    (None,ps.get('Name', None).decode('unicode-escape'),
-                        ps.get('Team', None),
-                        ps.get('Goals', None),
-                        ps.get('Saves', None),
-                        ps.get('Shots', None),
-                        ps.get('Assists', None),
-                        ps.get('Score', None))
-                    )
-            logger.debug("Parsed data was : %s",self.values)
-        else:
-            logger.info("Replay was in old format")
-            #Old replay
-            self.notif_text.set("Old replay format, might be missing data")
-            names_goals = {}
-            for d in data['header']['Goals']:
-                if "PlayerName" in d:
-                    names_goals[d['PlayerName'].decode('unicode-escape')] = (1 + names_goals.get("PlayerName",[0])[0],d['PlayerTeam'])
-            
-            for k,v in names_goals.items():
-                self.values.append((None,k,int(names_goals[k][1]),names_goals[k][0])+("",)*4)
-            logger.debug("Parsed data was : %s",self.values)
-
+        self.headers = replay['headers']
+        self.teams = replay['teams']
+        logger.debug("Displaying new replay: %s",replay)
         self.clear()
-        self.name.insert(0,"Replay "+self.headers[1])
-        self.mapname.insert(0,names.stadiums.get(data['header']['MapName'].lower(),data['header']['MapName']))
-        self.date.insert(0,re.sub(":(\d\d)-"," \\1:",data['header']['Date']))
+        self.name.insert(0,self.headers[0])
+        self.mapname.insert(0,self.headers[1])
+        self.date.insert(0,self.headers[2])
         self.table_insert_values()
         logger.info("Inserted values into table")
 
     def table_insert_values(self):
         """Inserts all values in self.values into the table"""
     
-        for values in self.values:
+        for values in self.teams:
             self.table.insert("", "end",
              values=values[1:],
              tags=("orange" if int(values[2]) == 1 else "blue"))
@@ -156,36 +126,6 @@ class ReplayEditFrame(tk.Frame):
         self.replay_entry = None
         logger.info("Cleared table")
 
-    def create_entry(self):
-        if not self.valid(): return
-
-        replay_name = self.name.get() 
-        map_name    = self.mapname.get()
-        date        = self.date.get()
-        logger.info("Creating entry")
-        try:
-            with DB_Manager(debug=True) as dmann:
-                #Create a replay entry and get the id.
-
-                c = dmann.add_replay(filename=self.headers[0],name=replay_name, mapname=map_name, date_time=date)
-                idx = c.lastrowid
-                self.replay_entry = (idx,self.headers[0],replay_name,map_name,date)
-                logger.debug("Created replay: %s",self.replay_entry)
-
-                #Make list of tuples to be inserted into database
-                teams = [(idx,)+values[1:] for values in self.values]
-                logger.debug("Inserting teams: %s",teams)
-                dmann.add_many_team(teams)
-                dmann.add_note(idx,"")
-                self.notif_text.set("Replay added")
-                logger.info("Replay added")
-
-        except sqlite3.IntegrityError, e:
-            self.notif_text.set("ERROR: COULD NOT CREATE ENTRY\n"+str(e))
-            logger.error("Could not create entry")
-            logger.error("Error : %s",e)
-            raise
-
     def valid(self):
         logger.info("Checking if valid")
         date = self.date.get()
@@ -193,7 +133,7 @@ class ReplayEditFrame(tk.Frame):
             self.notif_text.set("Date format must be YYYY-MM-DD hh:mm")
             logger.info("Invalid date format")
             return False
-        for values in self.values:
+        for values in self.teams:
             if values[1] == None or values[2] == None:
                 logger.info("Invalid name or team")
                 self.notif_text.set("Name and Team must be entered")
@@ -208,8 +148,8 @@ class ReplayEditFrame(tk.Frame):
         vals = []
         #If row_index is smaller than amount of rows we take that rows values
         #So that they are pre entered when the popup appears
-        if row_index < len(self.values):
-            vals = self.values[row_index]
+        if row_index < len(self.teams):
+            vals = self.teams[row_index]
             
         #Create the edit popup.
         popup = Popups.TableRowEditPopup(self,row_values=vals,winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()))
@@ -229,10 +169,10 @@ class ReplayEditFrame(tk.Frame):
         for (idx,heading) in enumerate(self.allcols):
             self.table.set(row_selection,heading,vals[idx+1])
         idx = self.table.index(row_selection)
-        if idx < len(self.values):
-            logger.debug("Replacing %s with %s",self.values[idx],vals)
-            self.values[idx] = vals
+        if idx < len(self.teams):
+            logger.debug("Replacing %s with %s",self.teams[idx],vals)
+            self.teams[idx] = vals
 
         else:
             logger.info("appending %s",vals)
-            self.values.append(vals) 
+            self.teams.append(vals) 

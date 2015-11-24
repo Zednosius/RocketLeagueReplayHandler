@@ -122,6 +122,7 @@ class ReplayInfoFrame(tk.Frame):
     def display(self,displaydata):
         #Displaydata keys: headers, teams, tags, groups, notes
         print "Displaying",displaydata
+        self.displaydata = dict(displaydata)
         self.id = displaydata['headers'].pop(0)
         self.filename = displaydata['headers'].pop(0)
         self.headers = displaydata['headers']
