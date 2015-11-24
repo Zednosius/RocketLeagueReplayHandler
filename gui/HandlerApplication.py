@@ -14,6 +14,7 @@ from ReplayInfoFrame import *
 from ReplayList import *
 from ReplayEditFrame import *
 import time
+import copy
 import threading
 import rl_paths
 import replay_parser
@@ -212,6 +213,6 @@ class ReplayManager(tk.Frame):
         sb = ttk.Button(top,text="Save")
         ed.pack(fill="both")
         sb.pack(fill="both")
-        ed.display_new(dict(self.info.displaydata))
+        ed.display_new(copy.deepcopy((self.info.displaydata)))
 
 

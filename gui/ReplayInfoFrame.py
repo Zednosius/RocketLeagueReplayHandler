@@ -9,6 +9,8 @@ from Popups import *
 from db_manager import *
 import logging
 import tasks
+import copy
+
 logger = logging.getLogger(__name__)
 logger.debug_ = logger.debug
 def dbg(txt,*args):
@@ -122,7 +124,7 @@ class ReplayInfoFrame(tk.Frame):
     def display(self,displaydata):
         #Displaydata keys: headers, teams, tags, groups, notes
         print "Displaying",displaydata
-        self.displaydata = dict(displaydata)
+        self.displaydata = copy.deepcopy(displaydata)
         self.id = displaydata['headers'].pop(0)
         self.filename = displaydata['headers'].pop(0)
         self.headers = displaydata['headers']

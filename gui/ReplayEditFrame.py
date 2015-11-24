@@ -97,9 +97,9 @@ class ReplayEditFrame(tk.Frame):
         self.teams = replay['teams']
         logger.debug("Displaying new replay: %s",replay)
         self.clear()
-        self.name.insert(0,self.headers[0])
-        self.mapname.insert(0,self.headers[1])
-        self.date.insert(0,self.headers[2])
+        self.name.insert(0,self.headers[2])
+        self.mapname.insert(0,self.headers[3])
+        self.date.insert(0,self.headers[4])
         self.table_insert_values()
         logger.info("Inserted values into table")
 
