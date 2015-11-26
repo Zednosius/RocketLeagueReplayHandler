@@ -105,8 +105,12 @@ class ReplayManager(tk.Frame):
         logger.info("Browse tab created")
 
 
-    def replay_insert(self, replay):
+    def replay_insert(self, replay_tup):
+        replay = replay_tup[0]
+        staged = replay_tup[1]
         self.tracked_replays.insert("end",replay[2],replay)
+        if staged:
+            self.staged_list.insert("end",replay[2],replay)
 
     def process_new(self):
         self.fetch_task = tasks.start_task(self,None,tasks.scan_refresh)

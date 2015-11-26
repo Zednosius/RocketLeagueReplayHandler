@@ -83,7 +83,9 @@ def fetch_replays(replayfilters={},tagfilters={},playerfilters={},groupfilters={
             shutil.copy2(rl_paths.backup_folder(replay[1]), rl_paths.tracked_folder(replay[1]))
             logger.info("Restored missing replay %s from backup",replay[1])
         # print "Putting replay",replay
-        queue.put(replay)
+        queue.put(
+            (replay, os.path.isfile(rl_paths.demo_folder(replay[1])))
+            )
 
     logger.info("Inserted replays into tracked_replay_list")
     print "Fetch replays done"
