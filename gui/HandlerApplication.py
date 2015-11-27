@@ -188,6 +188,7 @@ class ReplayManager(tk.Frame):
         logger.info("Deleted replay")
 
     def edit(self):
+        if self.info.displaydata == None: return
         top = tk.Toplevel()
         top.geometry("+%d+%d" % (self.winfo_rootx()+50,
                                   self.winfo_rooty()+50))
