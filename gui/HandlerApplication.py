@@ -173,7 +173,7 @@ class ReplayManager(tk.Frame):
     def delete_tracked_replay_popup(self):
         if(self.tracked_replays.size() == 0): return
         logger.info("Asking about deletion of replay")
-        pop = ConfirmPopup(text="Are you sure you want to delete this replay from the database?\nThis is permanent and your original data can not be recovered", 
+        pop = ConfirmPopup(text="Are you sure you want to delete this replay?\nThis is permanent and your original data can not be recovered", 
             winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()),
             callback=self.delete_tracked_replay
             )
@@ -185,28 +185,10 @@ class ReplayManager(tk.Frame):
         logger.debug("DELETING: %s",varlist)
         with DB_Manager() as dmann:
             dmann.delete_replay(varlist[0])
-        shutil.move(rl_paths.tracked_folder(varlist[1]),rl_paths.untracked_folder(varlist[1]))
+        os.remove(rl_paths.tracked_folder(varlist[1])
         if self.tracked_replays.size() == 0:
             self.info.clear()
-        logger.info("Deleted replay from db")
-
-    def delete_untracked_replay_popup(self):
-        if(self.untracked_replays.size() == 0): return
-        logger.info("Asking about deletion of replay")
-        pop = ConfirmPopup(text="Are you sure you want to delete this replay from your computer?\nThis is permanent and your replay can not be recovered", 
-            winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()),
-            callback=self.delete_untracked_replay
-            )
-        pop.title("Delete")
-
-    def delete_untracked_replay(self):
-        varlist = self.untracked_replays.get_variables(self.untracked_replays.selected_item)
-        logger.debug("DELETING: %s",varlist)
-        os.remove(rl_paths.untracked_folder(varlist[0]))
-        # os.remove(rl_paths.backup_folder(varlist[0]))
-        if self.untracked_replays.size() == 0:
-            self.edit_frame.clear()
-        logger.info("Deleted replay %s from computer",varlist[0])
+        logger.info("Deleted replay")
 
     def edit(self):
         top = tk.Toplevel()
