@@ -110,6 +110,7 @@ def main():
         filemenu.add_command(label="Import", command=lambda : import_func(rman))
         filemenu.add_command(label="Export Selected", command=lambda : export_single_func(rman))
         filemenu.add_command(label="Export Multiple", command=lambda : export_many_func(rman))
+        menu.add_command(label="Edit Selected",command=rman.edit)
 
         root.protocol("WM_DELETE_WINDOW",lambda : on_exit(rman,root))
         root.mainloop()
