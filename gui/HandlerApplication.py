@@ -139,7 +139,7 @@ class ReplayManager(tk.Frame):
         self.info.save()
 
     def copy_to_staging(self,variables_list):
-        print "Starting task: COPY TO STAGING"
+        #print "Starting task: COPY TO STAGING"
         tasks.start_task(self,None,tasks.copy_to_staging,variables_list)
 
 
