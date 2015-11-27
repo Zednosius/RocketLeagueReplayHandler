@@ -98,7 +98,7 @@ class ReplayInfoFrame(tk.Frame):
         self.note_body.delete("1.0","end")
         for headervar in self.headervars:
             headervar.set("")
-        self.replay_entry = None
+        self.displaydata = None
         self.headers = []
         self.teams = []
         logger.info("Cleared table")
@@ -150,6 +150,7 @@ class ReplayInfoFrame(tk.Frame):
     def __init__(self,parent,**kw):
         self.headervars = []
         self.headers = []
+        self.displaydata = None
         tk.Frame.__init__(self,parent,kw)
         
         self.mFont = tkFont.Font(family="Helvetica",size=14)
