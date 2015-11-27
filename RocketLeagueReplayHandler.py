@@ -18,6 +18,7 @@ import logging
 import traceback
 import gui.Popups as Popups
 from os.path import expanduser
+import os.path
 import tkMessageBox
 
 logger = logging.getLogger("root")
@@ -49,7 +50,7 @@ def export_many_func(app):
             tkMessageBox.showinfo(title="Export",message="Export complete!")
 
 def import_func(app):
-    filename = tkFileDialog.askopenfilename(initialdir=expanduser("~")+"\\Downloads",defaultextension=".zip")
+    filename = tkFileDialog.askopenfilename(initialdir=os.path.join(expanduser("~"),"Downloads"),defaultextension=".zip")
     print filename
     RLImport.import_zip(filename)
 
@@ -84,7 +85,7 @@ __location__ = get_main_dir()
 def main():
     print "Starting application"
     try:
-        if not os.path.isfile(__location__+"\\rocketleague.db"):
+        if not os.path.isfile(os.path.join(__location__,"rocketleague.db")):
             import db_setup
             db_setup.initdb()
         #If untracked folder move everything to demo folder for new processing method.
