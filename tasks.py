@@ -27,10 +27,21 @@ def start_task(widget, add_func, func, *args):
     """
     Starts a task with the target function and arguments, results are sent to the add_func which should be a classmethod of the widget.
     """
-    t = threading.Thread(target=func,args=args,kwargs={"queue":resultqueue})
+    t = threading.Thread(target=thread_func,args=[func,args],kwargs={"queue":resultqueue})
     t.start()
     widget.after(25, result_checking,widget,add_func,resultqueue)
     return (t,resultqueue)
+
+def thread_func(func,args,**kwargs):
+    print func,"[",args,"]",kwargs
+    try:
+        func(*args,**kwargs)
+    except Exception, e:
+        print "Something went wrong in a thread function"
+        print "Error",e
+        logger.error("Error in thread function %s",func)
+        logger.error("Error was %s",e)
+        kwargs['queue'].stopnow = True
 
 def result_checking(widget, add_func, resultqueue):
     """
