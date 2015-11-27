@@ -4,14 +4,14 @@ Tired of not finding that particular replay where you did that amazing thing?
 
 The Rocket League Replay Handler is the solution to your problems!  
 **Features**  
-[Name your replays, Put tags on them, Group them together!](http://i.imgur.com/7RVPGnt.png)  
+[Name your replays, Put tags on them, Group them together!](http://i.imgur.com/DPlMENU.png)  
 [Filter amongst your replays!](http://i.imgur.com/Y0QahFD.png)  
 [Select which replays should be viewable ingame with staging!](http://i.imgur.com/6IjIts7.png)
 
 
 **How do i install it?**  
 First make a backup of your replays, just to be extra safe. You find them under `<User>\Documents\My Games\Rocket League\TAGame\Demos`.  
-[Download the zip](https://github.com/Zednosius/RocketLeagueReplayHandler/releases/download/v1.0.0-alpha/RLRH_v1.0.0-alpha.zip), extract it to a folder of your choice eg. `<user>\RLRH`.  
+[Download the zip](https://github.com/Zednosius/RocketLeagueReplayHandler/releases/download/v1.1.0-alpha/RLRH_v1.1.0-alpha.zip), extract it to a folder of your choice eg. `<user>\RLRH`.  
 Start Rocket League to [avoid confusing steam cloud](https://github.com/Zednosius/RocketLeagueReplayHandler#important).  
 Run the RocketLeagueReplayhandler executable inside the folder you extracted to and you should be up and running!
 
@@ -33,6 +33,12 @@ The RLRH is developed by me, a compsci student and a big rocket league fan.
 * Add notes to them.
 * Staging, no more scrolling through dozens of replays!
 
+### New in version 1.1.0 ###
+* Export and import replays! Exports end up in the same folder as the executable.
+* Removed add-tab for streamlining the process.
+* Threaded large parts which does away with unresponsive/laggy ui.
+
+
 ### View information ###
 Simply select a replay in one of the lists to view information about it, such as which players were in it, scores, goals, your tags and the groups it belongs to.
 
@@ -49,14 +55,17 @@ Thanks to [Daniel Samuels](https://github.com/danielsamuels/rocket-league-replay
 Keep in mind that due to the replays format, not all information might be added. You can however manually add this if you feel it neccessary.
 
 ### Planned features ###
-An export and import system to enable sharing of replays together with your data about them.
+General improvements to UI.  
+I'm willing to take suggestions!
 
 
 # Important #
-**Make sure to backup your replays before running. It is unlikely that something would permanently delete them and the RLRH does back them up on its own, but there might be some odd combination of permissions that will delete them without any form of backup. Remember, better safe than sorry!**
+**Make sure to backup your replays before running. It is unlikely that something would permanently delete them and the RLRH does back them up on its own, but there might be some odd combination of permissions that will delete them without any form of backup.**  
+**Remember, better safe than sorry!**
 
 **Steam Cloud** 
-**The RLRH will shuffle around your replays in the rocket league replay folder, this makes steam cloud very confused when it tries to start rocket league and it finds a mismatch between the cloud and your local folder and subsequently redownloads every moved replay. To avoid this make sure to start rocket league before starting the RLRH. Having the replays redownloaded won't disturb the RLRHs operation, it is simply annoying having to wait for the download.**
+**The RLRH will shuffle around your replays in the rocket league replay folder, this makes steam cloud very confused when it tries to start rocket league and it finds a mismatch between the cloud and your local folder and subsequently redownloads every moved replay. To avoid this make sure to start rocket league before starting the RLRH. Having the replays redownloaded won't disturb the RLRHs operation, it is simply annoying having to wait for the download.**    
+**You could also disable steam cloud for rocket league to avoid this entirely.**
 
 If you want to reset your replay folder to its original state open a terminal window in the RLRH folder (Hold Shift and right click somewhere in the folder then select open command prompt) then run
 >RocketLeagueReplayHandler.exe reset
@@ -74,28 +83,16 @@ You could also clone this repository and run the `RocketLeagueReplayhandler.py` 
 
 # Usage #
 
-## Add Tab ##
-The first time you open the RLRH you will land in the **add** tab. This is where all new replays and the ones you haven't tracked yet end up, together they are referred to as "untracked" replays.  
-The replays are given names based on the date they were created and are sorted from newest to oldest.  
-If you've saved a new replay whilst the RLRH was running you can click the **rescan button** underneath the list to poll the replay directory for new replays.
 
-To view a replay simply select it in the list. The parser will do its best to display information about it to you.
-If you notice any missing information in a row you can click it to edit it, or if you feel that information is not neccessary you can simply leave it.  
-If an entire player is missing you can add a row by clicking the **add row button** underneath and then click the row to add information.
-Keep in mind that if you switch to another replay before clicking track *your changes will not be saved*.
-
-When you are satisfied with the information display click the **track button** at the bottom to add it to the database.
-
-## Browse Tab ##
-When a replay has been tracked it will end up in the list of the **browse** tab. 
+## Replay list ##
+Your replays will be seen to  list of the **browse** tab. 
 Clicking it will display information about it in the middle window.
 
 ### Add tag ###
 Add a tag to your selected replay by pressing the *add tag* button and writing into the dialog that pops up.
 
 ### Add to group ###
-Add the replay to a group by pressing the *add group" button and then either selecting an existing group in the dropdown or by writing directly into the field.
-
+Add the replay to a group by pressing the *add group* button and then either selecting an existing group in the dropdown or by writing directly into the field.
 
 ### Filtering ###
 Press the filter button underneath the to display the filter popup. Enter that which you want to filter on then press apply. To go back to the list of all replays simply click apply with all filters left empty. Keep in mind that it currently searches for exact matches, eg. "Group" and "group" are seen as different, so if you do not find any results make sure to double check that there are no misspellings or similar.
@@ -103,20 +100,15 @@ Press the filter button underneath the to display the filter popup. Enter that w
 ### Staging ###
 To stage a replay for viewing ingame simply select the replay you want and press the Enter key on your keyboard.
 
-### Unstaging ###
-To unstage a replay, select it in the staged list and press the Delete key on your keyboard. 
-If you want to unstage all replays you can press the button underneath the list.
-
-### Untracking ###
-To untrack a replay, e.g. delete it from the database, select it in the list and press the Delete key on your keyboard and then select yes in the confirmation popup. This will throw it back to the list of untracked replays.
-
 ### Deleting ###
-To fully delete a replay, select in the untracked replay list and press the delete. Selecting yes in the confirmation box will permanently delete your replay, including the backup of it.
+To fully delete a replay, select in the replay list and press the delete. Selecting yes in the confirmation box will permanently delete your replay. The backup folder will not be touched however.
 
-### Screencaps ###
+### Importing ###
+To import a replay, click *Import* in the menu and select the zipfile with the filedialog.
 
-![Browse Tab](http://i.imgur.com/A4sleF7.png)
-![Add Tab](http://i.imgur.com/XitT97P.png)
+### Exporting ###
+To export a replay either select it in the list and then click *Export Selected* in the menu.
+To export multiple replays click *Export Multiple* in the menu and select the ones you want to export. Note that it only shows replays in your list so it is possible to filter your replays before picking which to export.
 
 # License #
 See LICENSE
