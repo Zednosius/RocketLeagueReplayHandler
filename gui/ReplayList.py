@@ -173,6 +173,16 @@ class ReplayList(tk.Listbox):
         self.selection_set(self.selected_item)
         self.notify_parent_displayinfo(None)
 
+    def replace_selected(self,headers):
+        print "Headers",headers
+        print "selected_item",self.selected_item
+        print "vars:",self.variables[self.selected_item]
+        self.delete(self.selected_item)
+        self.insert(self.selected_item,headers[2],headers)
+        self.select_set(self.selected_item)
+        self.activate(self.selected_item)
+
+
     def enter_press(self,event):
         if not hasattr(self,'selected_item'): return
         if hasattr(self,"otherDropList"): self.transfer_selection()
