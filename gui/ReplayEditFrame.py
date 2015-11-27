@@ -93,6 +93,7 @@ class ReplayEditFrame(tk.Frame):
         """
         Uses the variables provided to redraw this frame with the new information.
         """
+        self.replay_entry=replay
         self.headers = replay['headers']
         self.teams = replay['teams']
         logger.debug("Displaying new replay: %s",replay)
@@ -129,12 +130,21 @@ class ReplayEditFrame(tk.Frame):
     def valid(self):
         logger.info("Checking if valid")
         date = self.date.get()
+        names = []
         if not re.match("\d{4}-\d{2}-\d{2} \d{2}:\d{2}",date):
             self.notif_text.set("Date format must be YYYY-MM-DD hh:mm")
             logger.info("Invalid date format")
             return False
         for values in self.teams:
+
+            if values[1] in names:
+                logger.info("Duplicate player name")
+                self.notif_text.set("Two players can't have the same name!")
+                return False
+            names.append(values[1])
+
             if values[1] == None or values[2] == None:
+
                 logger.info("Invalid name or team")
                 self.notif_text.set("Name and Team must be entered")
                 return False
@@ -152,7 +162,7 @@ class ReplayEditFrame(tk.Frame):
             vals = self.teams[row_index]
             
         #Create the edit popup.
-        popup = Popups.TableRowEditPopup(self,row_values=vals,winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()))
+        popup = Popups.TableRowEditPopup(self,row_values=vals,replay_id=self.headers[0],winfo_rootc=(self.winfo_rootx(),self.winfo_rooty()))
         popup.set_done_callback(lambda vals_ : self.replace_row(selection,vals_))
 
     def add_empty_row(self):
