@@ -33,7 +33,6 @@ def start_task(widget, add_func, func, *args):
     return (t,resultqueue)
 
 def thread_func(func,args,**kwargs):
-    print func,"[",args,"]",kwargs
     try:
         func(*args,**kwargs)
     except Exception, e:
@@ -42,6 +41,7 @@ def thread_func(func,args,**kwargs):
         logger.error("Error in thread function %s",func)
         logger.error("Error was %s",e)
         kwargs['queue'].stopnow = True
+        raise
 
 def result_checking(widget, add_func, resultqueue):
     """
@@ -51,14 +51,12 @@ def result_checking(widget, add_func, resultqueue):
     """
     try:
         v = resultqueue.get(block=False)
-        print "Found on queue",v
         if v == QueueOp.STOP or hasattr(resultqueue,"stopnow"):
-            print "FOUND STOP... STOPPING"
             return
         if add_func:
             add_func(v)
     except Queue.Empty, e:
-        print "Excepted",e
+        pass
     widget.after(25,result_checking,widget,add_func,resultqueue)
 
 def copy_to_staging(variables, queue):
