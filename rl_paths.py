@@ -7,38 +7,41 @@ import shutil
 import os
 from os.path import expanduser
 import errno
-_default_path = "\Documents\My Games\Rocket League\TAGame\Demos"
+_default_path = "Documents\\My Games\\Rocket League\\TAGame\\Demos"
 
 
 
 def make_dirs():
     try:
-        os.makedirs(expanduser("~")+_default_path+"\\tracked")
+        os.makedirs(os.path.join(expanduser("~"),_default_path,"tracked"))
 
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
     try:
-        os.makedirs(expanduser("~")+_default_path+"\\untracked") 
+        os.makedirs(os.path.join(expanduser("~"),_default_path,"untracked"))
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
 
     try:
-        os.makedirs(expanduser("~")+_default_path+"\\backup")
+        os.makedirs(os.path.join(expanduser("~"),_default_path,"backup"))
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
             
+def _add_ext_or_empty(f):
+    return (f+".replay" if f else "")
+
 def demo_folder(f=None):
-    demofolder = expanduser("~")+_default_path + ("\\"+f+".replay" if f else "")
+    demofolder = os.path.join(expanduser("~"),_default_path,_add_ext_or_empty(f))
     return demofolder
 
 def untracked_folder(f=None):
-    return demo_folder() + "\\untracked" + ("\\"+f+".replay" if f else "")
+    return os.path.join(demo_folder(),"untracked",_add_ext_or_empty(f))
 
 def tracked_folder(f = None):
-    return demo_folder() + "\\tracked" + ("\\"+f+".replay" if f else "")
+    return os.path.join(demo_folder(),"tracked", _add_ext_or_empty(f))
 
 def backup_folder(f=None):
-    return demo_folder() + "\\backup" + ("\\"+f+".replay" if f else "")
+    return os.path.join(demo_folder(),"backup", _add_ext_or_empty(f))
