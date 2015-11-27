@@ -1,0 +1,11 @@
+Short list containing new features of each version
+
+
+===== v1.1.0 =====
+
+===== v1.0.0 =====
+* Replay tracking, naming
+* Add tags
+* Add groups
+* Staging
+* 
