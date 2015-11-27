@@ -34,7 +34,11 @@ class DB_Manager():
     def add_replay(self, filename, name, mapname, date_time):
         logger.info("Inserted %s %s %s %s into replays ",filename,name,mapname,date_time)
         return self.conn.execute("INSERT INTO replays (filename,name,map,date_time) VALUES (?, ?, ?, ?);", (filename, name, mapname,date_time))
-            
+
+    def update_replay(self, original, replacement):
+        logger.info("Updating replay with filename=%s,name=%s,map=%s,date_time=%s WHERE id=%s",replacement[1:]+original[0:1])
+        return self.conn.execute("UPDATE replays SET filename=?,name=?,map=?,date_time=? WHERE id=?",replacement[1:]+original[0:1])
+
     def replay_exists(self,filename):
         return self.conn.execute("SELECT 1 from replays WHERE filename=?",(filename,)).fetchone()
 
@@ -44,6 +48,12 @@ class DB_Manager():
 
     def add_many_team(self,list_of_tuples):
         return self.conn.executemany("INSERT INTO teams VALUES (?, ?, ?, ?, ?, ?, ?, ?);",list_of_tuples)
+
+    def update_team(self, original, replacement):
+        print "Update team %s : %s" % (original, replacement)
+        data = replacement+original[:2]
+        logger.info("Ran UPDATE teams SET id=%s,playername=%s,,team=%s,goals=%s,saves=%s,shots=%s,assists=%s,score=%s WHERE id=%s AND playername=%s", data)
+        return self.conn.execute("UPDATE teams SET id=?,playername=?,team=?,goals=?,saves=?,shots=?,assists=?,score=? WHERE id=? AND playername=?;", data)
 
     def add_tag(self,ID,tagname,timestamp):
         logger.info("Inserted %s %s %s into tags",ID,tagname,timestamp)
