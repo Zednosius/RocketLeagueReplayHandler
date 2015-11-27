@@ -2,6 +2,7 @@ import zipfile
 import json
 import rl_paths
 import logging
+import time
 from db_manager import *
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ def fill_with_db_items(ID, data):
         data['groups'] = dmann.get_groups(ID)
 
 def dump_to_zip(jsondata):
-    with zipfile.ZipFile("export.zip","w") as fzip:
+    with zipfile.ZipFile("RL_"+time.strftime("%Y-%m-%d_%H-%M-%S")+".zip","w") as fzip:
         fzip.writestr("data.json",json.dumps(jsondata,separators=(",",":"),sort_keys=True,indent=1))
         if type(jsondata) == list:
             for replay in jsondata:
