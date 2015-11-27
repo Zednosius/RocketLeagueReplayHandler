@@ -131,12 +131,11 @@ class ReplayManager(tk.Frame):
         #Start task for fetching with filters.
         self.fetch_task = tasks.start_task(self,self.replay_insert,tasks.fetch_replays,replayfilters,tagfilters,playerfilters,groupfilters)
 
-    def replay_displayinfo(self,variables):
-        logger.info("Info now displaying: %s",variables)
-        print "Displaying",variables
+    def replay_displayinfo(self,replay_headers):
+        logger.info("Info now displaying: %s",replay_headers)
         self.info.clear()
-        tasks.start_task(self,self.info.display,tasks.fetch_display_data,variables)
-        # self.info.display(list(variables))
+        tasks.start_task(self,self.info.display,tasks.fetch_display_data,replay_headers)
+        # self.info.display(list(replay_headers))
 
     def save(self):
         self.info.save()
@@ -196,16 +195,26 @@ class ReplayManager(tk.Frame):
                                   self.winfo_rooty()+50))
         top.grab_set()
         ed = ReplayEditFrame(top)
-        sb = ttk.Button(top,text="Save",command=lambda : self.save_edit_changes(ed))
+        sb = ttk.Button(top,text="Save",command=lambda : self.save_edit_changes(ed,top))
         ed.pack(fill="both")
         sb.pack(fill="both")
+        ed.original_data = copy.deepcopy((self.info.displaydata))
         ed.display_new(copy.deepcopy((self.info.displaydata)))
 
-    def save_edit_changes(self,editframe):
+    def save_edit_changes(self,editframe,top):
         if editframe.valid():
-            print editframe.replay_entry
-            print editframe.teams
-            print editframe.headers
+            logger.info("Beginning replay update")
+            
+            
+            tasks.start_task(self,self.display_new,tasks.edit_update,editframe.original_data, editframe.replay_entry)
+            top.destroy()
+            
+            logger.info("Updated replay")
+
+    def display_new(self,updated):
+        self.replay_displayinfo(updated['headers'])
+        self.tracked_replays.replace_selected(updated['headers'])
+
 
 
 
