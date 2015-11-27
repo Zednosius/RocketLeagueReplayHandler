@@ -73,6 +73,33 @@ def copy_to_staging(variables, queue):
         logger.info("Copied %s to backup folder",variables[1])
     queue.put(QueueOp.STOP)
 
+def edit_update(original,updated,queue):
+    org_teams = original['teams']
+    new_teams = updated['teams']
+    org_headers = original['headers']
+    new_headers =  updated['headers']
+    print "Updating Entry"
+    with DB_Manager() as dmann:
+        print "headers",org_headers,new_headers
+        if  org_headers != new_headers:
+            dmann.update_replay(org_headers,new_headers)
+            logger.debug("Updated replay header from %s to %s",org_headers,new_headers)
+            print "Updated replay header from %s to %s " % (org_headers,new_headers)
+
+        for i in range(0,len(new_teams)):
+            if i < len(org_teams):
+                if org_teams[i] != new_teams[i]:
+                    dmann.update_team(org_teams[i],new_teams[i])
+                    logger.debug("Updated team entry %s to %s",org_teams[i],new_teams[i])
+                    #print "Changed from %s to %s" % (org_teams[i],new_teams[i])
+            else:
+                #print "added %s" % (new_teams[i],)
+                dmann.add_team(*new_teams[i])
+                logger.debug("Added team entry %s",new_teams[i])
+    print "Update finished"
+    queue.put(updated)
+    queue.put(QueueOp.STOP)
+
 
 def fetch_replays(replayfilters={},tagfilters={},playerfilters={},groupfilters={},queue=None):
     logger.info("Fetching replays")
@@ -163,14 +190,14 @@ def _scan_demo_folder(dlist):
     logger.info("Appended all %s replays",len(l))
 
 def _process_new_replays(dlist):
-    print "_Processing new replays",dlist
+    #print "_Processing new replays",dlist
     parser =  replay_parser.ReplayParser()
     tdict = {}
     new_list = []
 
     for d in dlist:
         if not d['tracked']:
-            print "Processing",d
+            #print "Processing",d
             data = parser.parse(d['path'])
             path = d['path']
             #Correct the file modified time if it is discrepant with the internal date from the replay file.
@@ -228,7 +255,7 @@ def _parse_to_useful(replay_base,data):
         logger.debug("Parsed data was : %s",teams)
 
     replay['teams'] = teams
-    print replay
+    #print replay
     return replay
 
 def _insert_new_replay_into_database(replay):
