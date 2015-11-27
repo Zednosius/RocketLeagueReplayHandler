@@ -93,11 +93,11 @@ class ReplayEditFrame(tk.Frame):
         """
         Uses the variables provided to redraw this frame with the new information.
         """
+        self.clear()
+        logger.debug("Displaying new replay: %s",replay)
         self.replay_entry=replay
         self.headers = replay['headers']
         self.teams = replay['teams']
-        logger.debug("Displaying new replay: %s",replay)
-        self.clear()
         self.name.insert(0,self.headers[2])
         self.mapname.insert(0,self.headers[3])
         self.date.insert(0,self.headers[4])
@@ -149,6 +149,7 @@ class ReplayEditFrame(tk.Frame):
                 self.notif_text.set("Name and Team must be entered")
                 return False
         logger.info("valid")
+        self.replay_entry['headers'] = self.replay_entry['headers'][:2]+[self.name.get(),self.mapname.get(),self.date.get()]
         return True
 
     def edit_row(self,event):
