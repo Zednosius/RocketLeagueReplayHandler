@@ -149,6 +149,7 @@ class ReplayList(tk.Listbox):
         return self.variables[index]
 
     def delete(self,start,end=None):
+        if len(self.variables) == 0: return
         tk.Listbox.delete(self,start,end)
         if self.delete_callback:
             varl = self.variables[start:end if end != None else start+1]

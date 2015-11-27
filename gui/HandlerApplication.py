@@ -74,7 +74,7 @@ class ReplayManager(tk.Frame):
         scrollbar2 = ttk.Scrollbar(f2, orient=tk.VERTICAL)
         self.staged_list = ReplayList(f2,yscrollcommand=scrollbar2.set)
         self.staged_list.bind("<MouseWheel>",lambda event : self.staged_list.yview("scroll",-event.delta/120,"units"))
-        self.staged_list.bind("<Delete>", lambda event :self.staged_list.delete(self.staged_list.selected_item))
+        self.staged_list.bind("<Delete>", lambda event :self.staged_list.delete_selected())
         scrollbar2.config(command=self.staged_list.yview)
         scrollbar2.pack(side=tk.RIGHT, fill=tk.Y)
         self.staged_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
