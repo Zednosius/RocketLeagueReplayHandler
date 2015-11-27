@@ -262,13 +262,22 @@ class ExportPopup(tk.Toplevel):
         self.grab_set()
         self.focus_set()
 
-        self.list = tk.Listbox(self,selectmode=tk.MULTIPLE)
+
+
+        scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL)
+        self.list = tk.Listbox(self,yscrollcommand=scrollbar.set,selectmode=tk.MULTIPLE)
+        self.list.bind("<MouseWheel>",lambda event : self.list.yview("scroll",-event.delta/120,"units"))
+        scrollbar.config(command=self.list.yview)
+        
+
+
         self.export = tk.Button(self,text="Export",command=self.done)
         for item in self.listitems:
             self.list.insert("end", item[2])
-        self.list.configure(height=self.list.size())
+        self.list.configure(height=15)
         self.list.grid(row=0,column=0,sticky="nswe")
         self.export.grid(row=1,column=0,sticky="wNSe")
+        scrollbar.grid(row=0,column=1,rowspan=2,sticky="ns")
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
         self.geometry("+%d+%d" % (wroot_x+50, wroot_y+50))
