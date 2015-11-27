@@ -12,12 +12,12 @@ import tasks
 import copy
 
 logger = logging.getLogger(__name__)
-logger.debug_ = logger.debug
-def dbg(txt,*args):
-    print txt % args
-    logger.debug_(txt,*args)
+# logger.debug_ = logger.debug
+# def dbg(txt,*args):
+#     print txt % args
+#     logger.debug_(txt,*args)
 
-logger.debug = dbg
+# logger.debug = dbg
 def tag_popup(taglist, infowidget):
     if hasattr(infowidget,"id"):
         TagPopup(taglist=taglist,infowidget=infowidget)
@@ -123,7 +123,7 @@ class ReplayInfoFrame(tk.Frame):
 
     def display(self,displaydata):
         #Displaydata keys: headers, teams, tags, groups, notes
-        print "Displaying",displaydata
+        # print "Displaying",displaydata
         self.displaydata = copy.deepcopy(displaydata)
         self.id = displaydata['headers'].pop(0)
         self.filename = displaydata['headers'].pop(0)
