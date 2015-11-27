@@ -185,7 +185,7 @@ class ReplayManager(tk.Frame):
         logger.debug("DELETING: %s",varlist)
         with DB_Manager() as dmann:
             dmann.delete_replay(varlist[0])
-        os.remove(rl_paths.tracked_folder(varlist[1])
+        os.remove(rl_paths.tracked_folder(varlist[1]))
         if self.tracked_replays.size() == 0:
             self.info.clear()
         logger.info("Deleted replay")
