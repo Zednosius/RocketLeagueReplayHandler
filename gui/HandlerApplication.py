@@ -196,9 +196,17 @@ class ReplayManager(tk.Frame):
                                   self.winfo_rooty()+50))
         top.grab_set()
         ed = ReplayEditFrame(top)
-        sb = ttk.Button(top,text="Save")
+        sb = ttk.Button(top,text="Save",command=lambda : self.save_edit_changes(ed))
         ed.pack(fill="both")
         sb.pack(fill="both")
         ed.display_new(copy.deepcopy((self.info.displaydata)))
+
+    def save_edit_changes(self,editframe):
+        if editframe.valid():
+            print editframe.replay_entry
+            print editframe.teams
+            print editframe.headers
+
+
 
 

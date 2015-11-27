@@ -63,6 +63,7 @@ class TagPopup(tk.Toplevel):
 
 class TableRowEditPopup(tk.Toplevel):
     def __init__(self,parent=None,**kw):
+        self.id = kw.pop("replay_id",None)
         logger.info("Making row edit popup")
         self.row_values = kw.pop("row_values",[])
         logger.debug("Row values: %s",self.row_values)
@@ -109,7 +110,7 @@ class TableRowEditPopup(tk.Toplevel):
         if not self.valid(): 
             self.notif.set("Invalid entries")
             return
-        self.final_values = (None,)+tuple(map(lambda ent: ent.get() , self.entries))
+        self.final_values = (self.id,)+tuple(map(lambda ent: ent.get() , self.entries))
         logger.debug("Row values edited to: %s",self.final_values)
         if self.done_callback:
             self.done_callback(self.final_values)
