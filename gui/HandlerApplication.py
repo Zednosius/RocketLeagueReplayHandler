@@ -96,8 +96,6 @@ class ReplayManager(tk.Frame):
         self.tracked_replays.link(self.staged_list)
         self.staged_list.link(self.tracked_replays)
         
-        self.editbutton = tk.Button(frame,text="EDIT",command=self.edit)
-        self.editbutton.grid(row=3,column=0)
         frame.grid_columnconfigure(0,weight=1)
         frame.grid_columnconfigure(1,weight=1)
         frame.grid_columnconfigure(2,weight=1)
