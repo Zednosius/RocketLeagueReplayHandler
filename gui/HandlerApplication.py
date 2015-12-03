@@ -3,6 +3,7 @@
 #Copyright (C) 2015 Erik Söderberg
 #See LICENSE for more information
 import Tkinter as tk
+import BetterTk as btk
 import ttk
 import tkFont
 import datetime
@@ -47,6 +48,7 @@ class ReplayManager(tk.Frame):
         # if(self.tracked_replays.size() == 0):
         #     n.select(1)
         logger.info("Manager created")
+        btk.recursive_widget_bind(self,"e",lambda e : self.edit())
 
 
 
@@ -193,7 +195,9 @@ class ReplayManager(tk.Frame):
         top.geometry("+%d+%d" % (self.winfo_rootx()+50,
                                   self.winfo_rooty()+50))
         top.grab_set()
+        top.bind("<Escape>",lambda e : top.destroy())
         ed = ReplayEditFrame(top)
+        ed.focus_set()
         sb = ttk.Button(top,text="Save",command=lambda : self.save_edit_changes(ed,top))
         ed.pack(fill="both")
         sb.pack(fill="both")
