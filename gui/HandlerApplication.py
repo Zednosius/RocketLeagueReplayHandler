@@ -48,7 +48,7 @@ class ReplayManager(tk.Frame):
         # if(self.tracked_replays.size() == 0):
         #     n.select(1)
         logger.info("Manager created")
-        btk.recursive_widget_bind(self,"e",lambda e : self.edit())
+        btk.recursive_widget_bind(self,"<Control-e>",lambda e : self.edit())
 
 
 
