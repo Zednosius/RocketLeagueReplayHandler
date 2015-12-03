@@ -88,7 +88,7 @@ class DB_Manager():
         return self.conn.execute("DELETE FROM replays WHERE id=?",(ID,))
 
     def delete_tag(self,ID,tagname,timestamp):
-        logger.info("Deleting tag %s:%s from replay %s",tagname,timstamp,ID)
+        logger.info("Deleting tag %s:%s from replay %s",tagname,timestamp,ID)
         return self.conn.execute("DELETE FROM tags WHERE id=? AND tagname=? AND timestamp=?",(ID,tagname,timestamp))
     def delete_from_group(self, ID, groupname):
         logger.info("Deleting replay %s from group %s",ID,groupname)
