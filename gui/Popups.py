@@ -3,6 +3,7 @@
 #Copyright (C) 2015 Erik Söderberg
 #See LICENSE for more information
 import Tkinter as tk
+import BetterTk as btk
 import ttk
 import tkFont
 from db_manager import *
@@ -25,9 +26,9 @@ class TagPopup(tk.Toplevel):
         namelabel = tk.Label(self,text="Tag name")
         timelabel = tk.Label(self,text="Replaytime (mm:ss)")
 
-        self.tagname = tk.Entry(self)
+        self.tagname = btk.Entry(self)
         self.tagname.bind("<Return>",lambda e : self.tagstamp.focus_set())
-        self.tagstamp = tk.Entry(self)
+        self.tagstamp = btk.Entry(self)
         self.tagstamp.bind("<Return>",lambda e : self.tag_add())
         self.tagname.focus_set()
         addbutton = ttk.Button(self,text="Add",command=self.tag_add)
@@ -83,7 +84,7 @@ class TableRowEditPopup(tk.Toplevel):
         for (i,txt) in enumerate(["Player Name","Team","Goals","Saves","Shots","Assists","Score"]):
             # print i,txt
             tk.Label(self,text=txt).grid(row=i,column=label_col,sticky="we")
-            self.entries.append(tk.Entry(self))
+            self.entries.append(btk.Entry(self))
             self.entries[i].grid(row=i,column=entry_col,sticky="we")
             if self.row_values and i < len(self.row_values)-1: #Skip the ID which is the first elem in row_values
                 self.entries[i].insert("end",self.row_values[i+1])
@@ -140,7 +141,7 @@ class FilterPopup(tk.Toplevel):
         for filtertype, options in self.filter_options.items():             
             for option in options:              
                 tk.Label(self,text=option).grid(row=idx,column=0)
-                self.entries[option] = (tk.Entry(self))
+                self.entries[option] = (btk.Entry(self))
                 self.entries[option].grid(row=idx,column=1,sticky="we")
                 self.entries[option].insert(0, self.last_filters.get(filtertype,{}).get(self.db_translate.get(option,option),("",""))[1])
                 idx += 1
@@ -185,6 +186,7 @@ class AddToGroupPopup(tk.Toplevel):
         logger.debug("Groups already added: %s",groups)
         self.label = tk.Label(self,text="Groups")
         self.combobox = ttk.Combobox(self,values=self.combovalues)
+        self.combobox.bind("<Control-a>",lambda e: (self.combobox.select_range(0,tk.END),"break")[1])
         self.addbutton = ttk.Button(self,text="Add",command=self.add)
 
         self.label.grid(row=0,column=0,sticky="we")
