@@ -89,7 +89,11 @@ class DB_Manager():
 
     def delete_tag(self,ID,tagname,timestamp):
         return self.conn.execute("DELETE FROM tags WHERE id=? AND tagname=? AND timestamp=?",(ID,tagname,timestamp))
+    def delete_from_group(self, ID, groupname):
 
+        group_id = self.conn.execute("SELECT g_id FROM groups WHERE name=?;",(groupname,)).fetchone();
+        return self.conn.execute("DELETE FROM group_members WHERE id=? and g_id=?;",(ID,group_id))
+        
     def get_all(self, table,orderBy=None):
         """Get all the rows from specified table"""
         table = clean(table)
