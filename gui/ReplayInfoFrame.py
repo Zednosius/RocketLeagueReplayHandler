@@ -3,6 +3,7 @@
 #Copyright (C) 2015 Erik Söderberg
 #See LICENSE for more information
 import Tkinter as tk
+import BetterTk as btk
 import ttk
 import tkFont
 from Popups import *
@@ -38,6 +39,8 @@ def treeview_sort_column(tv, col, reverse, cast):
         # reverse sort next time
         tv.heading(col, command=lambda: \
                    treeview_sort_column(tv, col, not reverse,cast))
+
+
 
 class ReplayInfoFrame(tk.Frame):
 
@@ -166,12 +169,15 @@ class ReplayInfoFrame(tk.Frame):
         self.make_table()
         #############################
 
-
-        self.taglist = TagList(self,callback=tag_popup,text="Add tag")
+        
+        self.taglist = TagList(self,callback=tag_popup,text="Add Tag",button_underline=4)
         self.taglist.grid(row=0,column=1,rowspan=2,sticky="NSWE")
+        btk.recursive_widget_bind(parent,"t",lambda e : tag_popup(self.taglist,self))
 
-        self.grouplist = GroupList(self,callback=group_popup,text="Add group")
+        
+        self.grouplist = GroupList(self,callback=group_popup,text="Add Group",button_underline=4)
         self.grouplist.grid(row=0,column=2,rowspan=2,sticky="NSWE")
+        btk.recursive_widget_bind(parent,"g",lambda e : group_popup(self.grouplist,self))
 
         self.note_frame = tk.Frame(self)
         scrollbar = ttk.Scrollbar(self.note_frame)
@@ -204,6 +210,7 @@ class ScrollableAddList(tk.Frame):
         self.mFont = kw.pop("mFont",tkFont.nametofont("TkDefaultFont"))
         self.callback = kw.pop("callback",None)
         self.add_text = kw.pop("text","Add")
+        underline = kw.pop("button_underline",-1)
         self.list = []
         tk.Frame.__init__(self,parent,kw)
         
@@ -211,7 +218,7 @@ class ScrollableAddList(tk.Frame):
         self.list_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
         self.list_body.bind("<MouseWheel>",lambda event : self.list_body.yview("scroll",-event.delta/120,"units"))
         self.scrollbar.config(command=self.list_body.yview)
-        self.addbutton = ttk.Button(self,text=self.add_text,command=lambda widget=self,parent=parent : self.callback(widget,parent))
+        self.addbutton = ttk.Button(self,text=self.add_text,underline=underline,command=lambda widget=self,parent=parent : self.callback(widget,parent))
 
         self.addbutton.grid(row=1,columnspan=2,stick="WE")
         self.scrollbar.grid(row=0,column=1,sticky="SN")
