@@ -38,6 +38,14 @@ The RLRH is developed by me, a compsci student and a big rocket league fan.
 * Removed add-tab for streamlining the process.
 * Threaded large parts which does away with unresponsive/laggy ui.
 
+### New in Version 1.1.1 ###
+* Added ctrl+a, select all, to all text fields.
+* Navigate up/down amongst replays with k/j
+* Ctrl+e to edit the replay visible.
+* 't' and 'g' popups window for adding tag and group respectively for active replay.
+* Delete groups from replays
+* Delete tags from replays
+
 
 ### View information ###
 Simply select a replay in one of the lists to view information about it, such as which players were in it, scores, goals, your tags and the groups it belongs to.

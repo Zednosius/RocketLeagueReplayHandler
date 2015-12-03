@@ -1,11 +1,22 @@
 Short list containing new features of each version
 
+===== v1.1.1 =====
+* Added ctrl+a, select all, to all text fields.
+* Navigate up/down amongst replays with k/j
+* Ctrl+e to edit the replay visible.
+* 't' and 'g' popups window for adding tag and group respectively for active replay.
+* Can delete groups from replays
+* Can delete tags from replays
 
 ===== v1.1.0 =====
+* Exporting and importing replays.
+* Reworked UI, making it less confusing
+* Added threading, eliminating a large cause of laggy ui.
 
 ===== v1.0.0 =====
 * Replay tracking, naming
+* View replay information
+* Edit replay information
 * Add tags
 * Add groups
 * Staging
-* 
