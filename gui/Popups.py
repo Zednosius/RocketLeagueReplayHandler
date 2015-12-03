@@ -216,7 +216,7 @@ class AddToGroupPopup(tk.Toplevel):
                 dmann.add_replay_to_group(self.replay_id, g_id)
                 logger.info("Adding replay to group")
                 self.combovalues.append(gname)
-                self.grouplist.insert(self,replay_id, gname)
+                self.grouplist.insert(self.replay_id, gname)
                 logger.info("Inserted to combobox and list")
             except sqlite3.IntegrityError,e:
                 logger.info("Replay was already a member of group: %s",gname)
