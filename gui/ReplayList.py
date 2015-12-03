@@ -21,7 +21,9 @@ class ReplayList(tk.Listbox):
         self.bind('<ButtonPress-1>', self.click)
 
         self.bind('<Up>',lambda e,di=-1:self.select_arrow(e,di))
+        self.bind('k',lambda e,di=-1:self.select_arrow(e,di))
         self.bind('<Down>',lambda e,di=1:self.select_arrow(e,di))
+        self.bind('j',lambda e,di=1:self.select_arrow(e,di))
         self.bind('<Left>',self.focus_other)
         self.bind('<Right>',self.focus_other)
         self.bind('<Return>',self.enter_press)
