@@ -117,13 +117,14 @@ def main():
     except Exception, e:
         logger.error("Encountered uncaught error")
         logger.error("Error was: %s", e)
+        logger.error("%s",sys.exc_info())
         print "Error",e,sys.exc_info()
         print traceback.format_exc()
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         main()
-    elif len(sys.argv) == 2 and sys.argv[1].lower() == "restore":
+    elif len(sys.argv) == 2 and (sys.argv[1].lower() == "restore" or sys.argv[1].lower() == "reset"):
         try:
             root = Tk()
             root.title("Rocket League Replay Handler")
@@ -135,6 +136,8 @@ if __name__ == '__main__':
         except Exception, e:
             logger.error("Encountered uncaught error")
             logger.error("Error was: %s", e)
-            print "error",e
+            logger.error("%s",sys.exc_info())
+            print "Error",e,sys.exc_info()
+            print traceback.format_exc()
 
 
