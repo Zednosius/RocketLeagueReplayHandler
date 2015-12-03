@@ -34,6 +34,7 @@ def start_task(widget, add_func, func, *args):
 
 def thread_func(func,args,**kwargs):
     try:
+        print args
         func(*args,**kwargs)
     except Exception, e:
         print "Something went wrong in a thread function"
@@ -282,7 +283,15 @@ def _insert_new_replay_into_database(replay):
         logger.error("Error : %s",e)
         raise
 
+def remove_group(ID,groupname,queue):
+    with DB_Manager() as dmann:
+        dmann.delete_from_group(ID,groupname)
+    queue.put(QueueOp.STOP)
 
+def remove_tag(ID,tagname,tagtime,queue):
+    with DB_Manager() as dmann:
+        dmann.delete_tag(ID,tagname,tagtime)
+    queue.put(QueueOp.STOP)
 
 def insert_scanned_staged(self):
     logger.info("Inserting scanned staged files into staged list")
