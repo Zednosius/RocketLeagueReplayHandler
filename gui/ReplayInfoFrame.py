@@ -133,8 +133,8 @@ class ReplayInfoFrame(tk.Frame):
         self.make_table()
         self.table_insert_values()
 
-        for (_,tag,time) in displaydata['tags']:
-            self.taglist.insert(tag,time)
+        for (ID,tag,time) in displaydata['tags']:
+            self.taglist.insert(ID,tag,time)
             logger.debug("Inserted tag %s@%s",tag,time)
 
 
@@ -207,6 +207,7 @@ class TagList(tk.Frame):
         self.scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL)
         self.list_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
         self.list_body.bind("<MouseWheel>",lambda event : self.list_body.yview("scroll",-event.delta/120,"units"))
+        self.list_body.bind("<Delete>",lambda event: self.remove_tag(int(self.list_body.curselection()[0])))
         self.scrollbar.config(command=self.list_body.yview)
         self.addbutton = ttk.Button(self,text=self.add_text,command=lambda taglist=self,parent=parent : self.callback(taglist,parent))
 
@@ -215,18 +216,28 @@ class TagList(tk.Frame):
         self.list_body.grid(row=0,column=0,sticky="NSWE")#.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
         self.grid_rowconfigure(0,weight=1)
 
-    def insert(self,tagname,timestamp):
+    def insert(self,ID,tagname,timestamp):
         
-        self.list.append((tagname,timestamp))
+        self.list.append((ID,tagname,timestamp))
         self.list_body.insert("end",str(tagname)+" @ "+str(timestamp))
         self.list_body.config(width=0)
     
     def see(self,index):
         self.list_body.see(index)
 
-    def delete(self,index,end):
-        self.list = self.list[0:index]+self.list[len(self.list) if end =="end" else end:len(self.list)]
+    def delete(self,index,end=None):
+        if end == None:
+            end = index+1
+        if type(end) == str and end.lower() =="end":
+            end = len(self.list)
+        for i in range(index,end):
+            self.list.pop(index) #List shrinks so index stays the same
         self.list_body.delete(index,end)
+
+    def remove_tag(self,index):
+        tagitem = self.list[index]
+        self.delete(index)
+        tasks.start_task(self,None,tasks.remove_tag,*tagitem)
 
 class GroupList(TagList):
 

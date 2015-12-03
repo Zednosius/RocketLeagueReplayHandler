@@ -52,7 +52,7 @@ class TagPopup(tk.Toplevel):
         tstamp = self.tagstamp.get()
         with DB_Manager() as dmann:
             dmann.add_tag(self.replay_id,tname,tstamp)
-            self.taglist.insert(tname,tstamp)
+            self.taglist.insert(self.replay_id,tname,tstamp)
             self.taglist.see("end")
             logger.debug("Added tag %s @ %s",tname,tstamp)
         self.tagname.delete(0,"end")
