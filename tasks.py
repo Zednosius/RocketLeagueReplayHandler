@@ -34,7 +34,6 @@ def start_task(widget, add_func, func, *args):
 
 def thread_func(func,args,**kwargs):
     try:
-        print args
         func(*args,**kwargs)
     except Exception, e:
         print "Something went wrong in a thread function"
