@@ -196,8 +196,11 @@ class ReplayInfoFrame(tk.Frame):
         self.note_body.tag_add("sel","1.0","end-1c")
         return "break"
 
-class TagList(tk.Frame):
+
+
+class ScrollableAddList(tk.Frame):
     def __init__(self,parent,**kw):
+        print kw
         self.mFont = kw.pop("mFont",tkFont.nametofont("TkDefaultFont"))
         self.callback = kw.pop("callback",None)
         self.add_text = kw.pop("text","Add")
@@ -207,20 +210,14 @@ class TagList(tk.Frame):
         self.scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL)
         self.list_body = tk.Listbox(self, background="#F0F8FF",font=self.mFont, width=10,yscrollcommand=self.scrollbar.set)
         self.list_body.bind("<MouseWheel>",lambda event : self.list_body.yview("scroll",-event.delta/120,"units"))
-        self.list_body.bind("<Delete>",lambda event: self.remove_tag(int(self.list_body.curselection()[0])))
         self.scrollbar.config(command=self.list_body.yview)
-        self.addbutton = ttk.Button(self,text=self.add_text,command=lambda taglist=self,parent=parent : self.callback(taglist,parent))
+        self.addbutton = ttk.Button(self,text=self.add_text,command=lambda widget=self,parent=parent : self.callback(widget,parent))
 
-        self.addbutton.grid(row=1,columnspan=2,stick="WE")#.pack(side=tk.BOTTOM,fill=tk.X,expand=1)
-        self.scrollbar.grid(row=0,column=1,sticky="SN")#.pack(side=tk.RIGHT, fill=tk.Y)
-        self.list_body.grid(row=0,column=0,sticky="NSWE")#.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+        self.addbutton.grid(row=1,columnspan=2,stick="WE")
+        self.scrollbar.grid(row=0,column=1,sticky="SN")
+        self.list_body.grid(row=0,column=0,sticky="NSWE")
         self.grid_rowconfigure(0,weight=1)
 
-    def insert(self,ID,tagname,timestamp):
-        
-        self.list.append((ID,tagname,timestamp))
-        self.list_body.insert("end",str(tagname)+" @ "+str(timestamp))
-        self.list_body.config(width=0)
     
     def see(self,index):
         self.list_body.see(index)
@@ -234,15 +231,28 @@ class TagList(tk.Frame):
             self.list.pop(index) #List shrinks so index stays the same
         self.list_body.delete(index,end)
 
+class TagList(ScrollableAddList):
+    def __init__(self,parent,**kw):
+        ScrollableAddList.__init__(self, parent, **kw)
+        self.list_body.bind("<Delete>",lambda event: self.remove_tag(int(self.list_body.curselection()[0])))
+
+    def insert(self,ID,tagname,timestamp):
+        
+        self.list.append((ID,tagname,timestamp))
+        self.list_body.insert("end",str(tagname)+" @ "+str(timestamp))
+        self.list_body.config(width=0)
+
+
     def remove_tag(self,index):
         tagitem = self.list[index]
         self.delete(index)
         tasks.start_task(self,None,tasks.remove_tag,*tagitem)
 
-class GroupList(TagList):
+class GroupList(ScrollableAddList):
     def __init__(self,parent,**kw):
-        TagList.__init__(self,parent, **kw)
+        ScrollableAddList.__init__(self,parent, **kw)
         self.list_body.bind("<Delete>",lambda event: self.remove_group(int(self.list_body.curselection()[0])))
+
     def insert(self,replay_id, groupname):
         self.list.append((replay_id,groupname))
         self.list_body.insert("end",groupname)
