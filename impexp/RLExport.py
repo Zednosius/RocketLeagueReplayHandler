@@ -1,3 +1,8 @@
+#!/usr/bin/python2
+# -*- coding: utf-8 -*-
+#Copyright (C) 2015 Erik Söderberg
+#See LICENSE for more information
+
 import zipfile
 import json
 import rl_paths
