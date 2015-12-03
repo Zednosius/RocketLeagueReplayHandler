@@ -20,6 +20,7 @@ class TagPopup(tk.Toplevel):
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
         self.focus_set()
+        self.bind("<Escape>",lambda e : self.destroy())
         self.replay_id = self.infowidget.id
         self.title("Add tag for "+self.infowidget.headers[0])
         
@@ -71,6 +72,9 @@ class TableRowEditPopup(tk.Toplevel):
         wroot_x,wroot_y = kw.pop("winfo_rootc",(0,0))
         self.done_callback = kw.pop("done_callback",None)
         tk.Toplevel.__init__(self,parent,**kw)
+
+        self.bind("<Escape>",lambda e : self.destroy())
+
         self.notif = tk.StringVar()
 
 
@@ -134,7 +138,7 @@ class FilterPopup(tk.Toplevel):
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
         self.focus_set()
-
+        self.bind("<Escape>",lambda e : self.destroy())
         self.entries = {}
         idx = 0
         print "Filters last time",FilterPopup.last_filters
@@ -179,7 +183,8 @@ class AddToGroupPopup(tk.Toplevel):
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
         self.focus_set()
-        
+        self.bind("<Escape>",lambda e : self.destroy())
+
         with DB_Manager() as dmann:
             groups = dmann.get_all("groups")
         self.combovalues = [group[1] for group in groups]
@@ -234,6 +239,8 @@ class ConfirmPopup(tk.Toplevel):
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
         self.focus_set()
+        self.bind("<Escape>",lambda e : self.destroy())
+        
         self.label = tk.Label(self,text=self.text)
         self.yesButton = ttk.Button(self,text="Yes",command=self.confirm)
         self.noButton = ttk.Button(self,text="No",command=self.abort)
@@ -263,7 +270,7 @@ class ExportPopup(tk.Toplevel):
         tk.Toplevel.__init__(self,parent,**kw)
         self.grab_set()
         self.focus_set()
-
+        self.bind("<Escape>",lambda e : self.destroy())
 
 
         scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL)
