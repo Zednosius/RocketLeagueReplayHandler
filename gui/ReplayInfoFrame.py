@@ -141,7 +141,7 @@ class ReplayInfoFrame(tk.Frame):
         for group in displaydata['groups']:
             if type(group) == tuple:
                 group = group[0]
-            self.grouplist.insert(group)
+            self.grouplist.insert(self.id,group)
             logger.debug("Inserted group %s",group)
 
         self.note_body.insert("end",displaydata['notes'][0][1] if displaydata['notes'] else "")
@@ -240,8 +240,15 @@ class TagList(tk.Frame):
         tasks.start_task(self,None,tasks.remove_tag,*tagitem)
 
 class GroupList(TagList):
-
-    def insert(self,groupname):
-        self.list.append(groupname)
+    def __init__(self,parent,**kw):
+        TagList.__init__(self,parent, **kw)
+        self.list_body.bind("<Delete>",lambda event: self.remove_group(int(self.list_body.curselection()[0])))
+    def insert(self,replay_id, groupname):
+        self.list.append((replay_id,groupname))
         self.list_body.insert("end",groupname)
+    
+    def remove_group(self,index):
+        groupitem = self.list[index]
+        self.delete(index)
+        tasks.start_task(self,None,tasks.remove_group,*groupitem)
 
