@@ -131,7 +131,7 @@ def main():
         menu.add_command(label="Export Selected", command=lambda : export_single_func(rman))
         menu.add_command(label="Export Multiple", command=lambda : export_many_func(rman))
         menu.add_command(label="Edit Selected",command=rman.edit)
-
+        menu.add_command(label="Rescan",command=rman.process_new)
         root.protocol("WM_DELETE_WINDOW",lambda : on_exit(rman,root))
         root.mainloop()
     except Exception, e:
