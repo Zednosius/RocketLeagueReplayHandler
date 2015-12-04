@@ -20,7 +20,6 @@ import gui.Popups as Popups
 from os.path import expanduser
 import os.path
 import tkMessageBox
-
 logger = logging.getLogger("root")
 
 
@@ -52,8 +51,27 @@ def export_many_func(app):
 def import_func(app):
     filename = tkFileDialog.askopenfilename(initialdir=os.path.join(expanduser("~"),"Downloads"),defaultextension=".zip")
     print filename
-    RLImport.import_zip(filename)
+    if filename:
+        RLImport.import_zip(filename)
 
+def determine_replaydir():
+    if not os.path.isdir(rl_paths.demo_folder()):
+        print "Demo folder not in default location"
+        if not os.path.isfile("replay.path"):
+            print "Replay folder not in default location"
+            tkMessageBox.showinfo(title="Replay Directory",message="Your replay directory is not in the default selection.\nPlease select its location from the next dialog.")
+            dirpath = tkFileDialog.askdirectory(title="Select Replay Directory",initialdir=os.path.expanduser("~"))
+            rl_paths._default_path = dirpath
+            with open("replay.path",'w') as f:
+                f.write(dirpath)
+                f.write("\n")
+        else:
+            with open("replay.path","r") as f:
+                for line in f:
+                    rl_paths._default_path = line.strip()
+                    break
+        print "DEFAULT: ",rl_paths._default_path
+        print "DEMO: ",rl_paths.demo_folder()
 
 def output():
     print "Not implemented"
@@ -85,6 +103,8 @@ __location__ = get_main_dir()
 def main():
     print "Starting application"
     try:
+        root = Tk()
+        determine_replaydir()
         if not os.path.isfile(os.path.join(__location__,"rocketleague.db")):
             import db_setup
             db_setup.initdb()
@@ -94,7 +114,7 @@ def main():
                 f = os.path.splitext(f)[0]
                 shutil.move(rl_paths.untracked_folder(f),rl_paths.demo_folder(f))
 
-        root = Tk()
+        
         root.title("Rocket League Replay Handler")
         root.minsize(700,500)
       
