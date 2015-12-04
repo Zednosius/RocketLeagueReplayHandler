@@ -13,4 +13,6 @@ stadiums = {
 
     "trainstation_p":"Urban Central",
     "trainstation_night_p":"Urban Central (night)",
+
+    "wasteland_p":"Wasteland",
 }
