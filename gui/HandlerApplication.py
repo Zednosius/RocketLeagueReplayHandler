@@ -112,8 +112,19 @@ class ReplayManager(tk.Frame):
         if staged:
             self.staged_list.insert("end",replay[2],replay)
 
+
+
     def process_new(self):
-        self.fetch_task = tasks.start_task(self,None,tasks.scan_refresh)
+        print "processing new replays"
+        #Stop the active task (has no effect if it already is stopped)
+        if self.fetch_task:
+            self.fetch_task[1].stopnow = True
+        #Make sure the thread is stopped.
+        self.fetch_task[0].join()
+        
+        self.tracked_replays.clear()
+        self.staged_list.clear()
+        self.fetch_task = tasks.start_task(self,self.replay_insert,tasks.scan_refresh)
 
     def startup_procedure(self):
         self.fetch_task = tasks.start_task(self,self.replay_insert, tasks.startup_procedure)
