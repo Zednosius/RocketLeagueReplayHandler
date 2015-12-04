@@ -54,7 +54,18 @@ def import_func(app):
     if filename:
         RLImport.import_zip(filename)
 
+def read_replay_path():
+    with open("replay.path","r") as f:
+        for line in f:
+            rl_paths._default_path = line.strip()
+            break
+
 def determine_replaydir():
+    if os.path.isfile("replay.path"):
+        print "have path"
+        read_replay_path()
+        return
+
     if not os.path.isdir(rl_paths.demo_folder()):
         print "Demo folder not in default location"
         if not os.path.isfile("replay.path"):
@@ -66,10 +77,7 @@ def determine_replaydir():
                 f.write(dirpath)
                 f.write("\n")
         else:
-            with open("replay.path","r") as f:
-                for line in f:
-                    rl_paths._default_path = line.strip()
-                    break
+            read_replay_path()
         print "DEFAULT: ",rl_paths._default_path
         print "DEMO: ",rl_paths.demo_folder()
 
