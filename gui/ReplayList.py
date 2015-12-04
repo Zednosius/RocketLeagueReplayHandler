@@ -53,6 +53,7 @@ class ReplayList(tk.Listbox):
             self.selected_item = (self.selected_item+di) % self.size()
             logger.debug("Selecting: %s",self.selected_item)
             self.selection_set(self.selected_item)
+            self.activate(self.selected_item)
             self.see(self.selected_item)
             logger.debug("Scrolled to item")
 
