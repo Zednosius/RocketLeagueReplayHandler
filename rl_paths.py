@@ -8,24 +8,24 @@ import os
 from os.path import expanduser
 import errno
 _default_path = "Documents\\My Games\\Rocket League\\TAGame\\Demos"
-
+_default_path = os.path.join(expanduser("~"),_default_path)
 
 
 def make_dirs():
     try:
-        os.makedirs(os.path.join(expanduser("~"),_default_path,"tracked"))
+        os.mkdir(os.path.join(_default_path,"tracked"))
 
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
     try:
-        os.makedirs(os.path.join(expanduser("~"),_default_path,"untracked"))
+        os.mkdir(os.path.join(_default_path,"untracked"))
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
 
     try:
-        os.makedirs(os.path.join(expanduser("~"),_default_path,"backup"))
+        os.mkdir(os.path.join(_default_path,"backup"))
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
@@ -34,7 +34,7 @@ def _add_ext_or_empty(f):
     return (f+".replay" if f else "")
 
 def demo_folder(f=None):
-    demofolder = os.path.join(expanduser("~"),_default_path,_add_ext_or_empty(f))
+    demofolder = os.path.join(_default_path,_add_ext_or_empty(f))
     return demofolder
 
 def untracked_folder(f=None):
