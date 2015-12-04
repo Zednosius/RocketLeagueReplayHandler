@@ -206,7 +206,6 @@ class ReplayInfoFrame(tk.Frame):
 
 class ScrollableAddList(tk.Frame):
     def __init__(self,parent,**kw):
-        print kw
         self.mFont = kw.pop("mFont",tkFont.nametofont("TkDefaultFont"))
         self.callback = kw.pop("callback",None)
         self.add_text = kw.pop("text","Add")
