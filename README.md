@@ -11,7 +11,7 @@ The Rocket League Replay Handler is the solution to your problems!
 
 **How do i install it?**  
 First make a backup of your replays, just to be extra safe. You find them under `<User>\Documents\My Games\Rocket League\TAGame\Demos`.  
-[Download the zip](https://github.com/Zednosius/RocketLeagueReplayHandler/releases/download/v1.1.0-alpha/RLRH_v1.1.0-alpha.zip), extract it to a folder of your choice eg. `<user>\RLRH`.  
+[Download the zip](https://github.com/Zednosius/RocketLeagueReplayHandler/releases/download/v1.1.1-alpha/RLRH_v1.1.1-alpha.zip), extract it to a folder of your choice eg. `<user>\RLRH`.  
 Start Rocket League to [avoid confusing steam cloud](https://github.com/Zednosius/RocketLeagueReplayHandler#important) or you can disable steam cloud for rocket league if you prefer a more permanent solution.  
 Run the RocketLeagueReplayhandler executable inside the folder you extracted to and you should be up and running!
 
