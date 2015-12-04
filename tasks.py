@@ -162,10 +162,11 @@ def scan_refresh(queue):
     dlist = []
     _scan_demo_folder(dlist)
     _process_new_replays(dlist)
+    fetch_replays(queue=queue)
     queue.put(QueueOp.STOP)
 
 def _scan_demo_folder(dlist):
-    # print "scanning on",rl_paths.demo_folder()
+    print "scanning on",rl_paths.demo_folder()
     logger.info("Scanning demo on path %s",rl_paths.demo_folder())
     with DB_Manager(debug=True) as dmann:
         l = [rl_paths.demo_folder( os.path.splitext(x)[0]) 
