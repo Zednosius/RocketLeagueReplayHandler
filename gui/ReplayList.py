@@ -150,6 +150,10 @@ class ReplayList(tk.Listbox):
     def get_variables(self,index):
         return self.variables[index]
 
+    def clear(self):
+        tk.Listbox.delete(self,0,self.size())
+        self.variables = []
+
     def delete(self,start,end=None):
         if len(self.variables) == 0: return
         tk.Listbox.delete(self,start,end)
