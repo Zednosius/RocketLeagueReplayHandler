@@ -45,7 +45,8 @@ The RLRH is developed by me, a compsci student and a big rocket league fan.
 * 't' and 'g' popups window for adding tag and group respectively for active replay.
 * Delete groups from replays
 * Delete tags from replays
-
+* Can scan replay folder for new replays with 'Rescan' menu option.
+* If replay folder is not in the default location you will be asked to provide the actual location.
 
 ### View information ###
 Simply select a replay in one of the lists to view information about it, such as which players were in it, scores, goals, your tags and the groups it belongs to.

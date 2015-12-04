@@ -7,6 +7,8 @@ Short list containing new features of each version
 * 't' and 'g' popups window for adding tag and group respectively for active replay.
 * Can delete groups from replays
 * Can delete tags from replays
+* Can scan replay folder for new replays with 'Rescan' menu option.
+* If replay folder is not in the default location you will be asked to provide the actual location.
 
 ===== v1.1.0 =====
 * Exporting and importing replays.
