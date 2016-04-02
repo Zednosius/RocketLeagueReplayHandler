@@ -60,6 +60,9 @@ def result_checking(widget, add_func, resultqueue):
     widget.after(25,result_checking,widget,add_func,resultqueue)
 
 def copy_to_staging(variables, queue):
+    """
+    Copies replay to staging folder (and also to backup if it hasn't been already)
+    """
     if not os.path.isfile(rl_paths.demo_folder(variables[1])):
         shutil.copy2(rl_paths.tracked_folder(variables[1]),rl_paths.demo_folder(variables[1]))
         logger.info("Copied %s to demo_folder",variables[1])
@@ -74,6 +77,9 @@ def copy_to_staging(variables, queue):
     queue.put(QueueOp.STOP)
 
 def edit_update(original,updated,queue):
+    """
+    Updates the database entry for a replay with user created data.
+    """
     org_teams = original['teams']
     new_teams = updated['teams']
     org_headers = original['headers']
@@ -102,6 +108,10 @@ def edit_update(original,updated,queue):
 
 
 def fetch_replays(replayfilters={},tagfilters={},playerfilters={},groupfilters={},queue=None):
+    """
+    Fetches replays from the database that satisfies any filters applied. Each replay is put as a separate value (replay,filepath) on the queue.
+    A STOP signifies that there are no more replays to be fetched.
+    """
     logger.info("Fetching replays")
     with DB_Manager() as mann:
         if replayfilters  or tagfilters or playerfilters or groupfilters:
@@ -128,6 +138,9 @@ def fetch_replays(replayfilters={},tagfilters={},playerfilters={},groupfilters={
     queue.put(QueueOp.STOP)
 
 def fetch_display_data(replay,queue):
+    """
+    Fetches all data associated with the replay from the database and puts this in a dict on the queue followed by STOP.
+    """
     display_data = {}
     with DB_Manager() as mann:
         display_data['headers'] = list(replay)
@@ -140,6 +153,9 @@ def fetch_display_data(replay,queue):
 
 
 def save_data(data,queue):
+    """
+        Saves data regarding a replay that can be edited without any popups. Currently the 'note' is the only one this applies to.
+    """
     with DB_Manager() as dmann:
         id_ = data['id']
         txt = data['note']
@@ -148,6 +164,9 @@ def save_data(data,queue):
     queue.put(QueueOp.STOP)
 
 def startup_procedure(queue):
+    """
+    Runs on appstart. Scans for new replays, adds them and then displays all replays available.
+    """
     print "Running startup procedure"
     dlist = []
     _scan_demo_folder(dlist)
@@ -159,6 +178,9 @@ def startup_procedure(queue):
     queue.put(QueueOp.STOP)
 
 def scan_refresh(queue):
+    """
+   Scans for new replays, adds them and then displays all replays available.
+    """
     dlist = []
     _scan_demo_folder(dlist)
     _process_new_replays(dlist)
@@ -166,13 +188,16 @@ def scan_refresh(queue):
     queue.put(QueueOp.STOP)
 
 def _scan_demo_folder(dlist):
+    """
+    Looks in the demo_folder for any new replays. These are added on the format {path:fpath, name:filename,tracked:bool} to the list passed in as parameter.
+    """
     print "scanning on",rl_paths.demo_folder()
     logger.info("Scanning demo on path %s",rl_paths.demo_folder())
     with DB_Manager(debug=True) as dmann:
         l = [rl_paths.demo_folder( os.path.splitext(x)[0]) 
             for x in os.listdir(rl_paths.demo_folder()) 
-            if os.path.isfile(rl_paths.demo_folder(os.path.splitext(x)[0]))]
-        l.sort(reverse=True,key=lambda x: os.path.getmtime(x))
+            if os.path.isfile(rl_paths.demo_folder(os.path.splitext(x)[0]))] # get only files
+        l.sort(reverse=True,key=lambda x: os.path.getmtime(x)) # Sort by last modified date, most recent first
         # print "Sorted replays by date"
         logger.info("Sorted replays by date")
         for f in l:
@@ -191,7 +216,9 @@ def _scan_demo_folder(dlist):
     logger.info("Appended all %s replays",len(l))
 
 def _process_new_replays(dlist):
-    #print "_Processing new replays",dlist
+    """
+    Processes new replays with the replay parser and adds them to the database.
+    """
     parser =  replay_parser.ReplayParser()
     tdict = {}
     new_list = []
@@ -218,6 +245,10 @@ def _process_new_replays(dlist):
 
 
 def _parse_to_useful(replay_base,data):
+    """
+    Parses the replay info from the parser into a format that is more easily used by this application.
+    Replays are kept as a dict containing the keys [filename,date,name,mapname,teams]
+    """
     replay = {}
     replay['filename'] = replay_base['name']
     replay['date'] = re.sub(":(\d\d)-"," \\1:",data['header']['Date'])
@@ -260,6 +291,9 @@ def _parse_to_useful(replay_base,data):
     return replay
 
 def _insert_new_replay_into_database(replay):
+    """
+    Inserts the replay given into the database. The replay should be in the format from _parse_to_useful.
+    """
     try:
         with DB_Manager(debug=True) as dmann:
             #Create a replay entry and get the id.

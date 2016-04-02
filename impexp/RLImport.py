@@ -10,7 +10,11 @@ from db_manager import *
 
 
 def import_zip(path_to_zip, progressQueue=None):
+    """
+    Imports a zip with jsondata and replays into the application.
+    """
     data = {}
+
     with zipfile.ZipFile(path_to_zip,"r") as fzip:
         with fzip.open("data.json","r") as fdata:
             data = json.loads(fdata.read())

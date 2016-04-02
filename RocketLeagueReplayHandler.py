@@ -49,12 +49,18 @@ def export_many_func(app):
             tkMessageBox.showinfo(title="Export",message="Export complete!")
 
 def import_func(app):
+    """
+    Replay import function.
+    """
     filename = tkFileDialog.askopenfilename(initialdir=os.path.join(expanduser("~"),"Downloads"),defaultextension=".zip")
     print filename
     if filename:
         RLImport.import_zip(filename)
 
 def determine_replaydir():
+    """
+    Checks if the replay directory is in its default directory, if it is not the user is prompted for its location.
+    """
     if not os.path.isdir(rl_paths.demo_folder()):
         print "Demo folder not in default location"
         if not os.path.isfile("replay.path"):
@@ -125,6 +131,7 @@ def main():
         menu = Menu(root)
         root.config(menu=menu)
 
+        # Set up menues.
         filemenu = Menu(menu,tearoff=0)
         #menu.add_cascade(label="File", menu=filemenu)
         menu.add_command(label="Import", command=lambda : import_func(rman))
@@ -134,6 +141,8 @@ def main():
         menu.add_command(label="Rescan",command=rman.process_new)
         root.protocol("WM_DELETE_WINDOW",lambda : on_exit(rman,root))
         root.mainloop()
+
+
     except Exception, e:
         logger.error("Encountered uncaught error")
         logger.error("Error was: %s", e)
